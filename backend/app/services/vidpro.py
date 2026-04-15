@@ -135,9 +135,10 @@ def apply_edits(input_path: str, actions: list) -> str:
         meta = get_video_metadata(input_path)
         width = meta['width']
         height = meta['height']
-        # 1. Setup Input Streams
-        stream = ffmpeg.input(input_path)
-        audio = stream.audio
+        # 1. Setup Input Streams - explicitly separate video and audio
+        inp = ffmpeg.input(input_path)
+        stream = inp.video
+        audio = inp.audio
         music_stream = None
         # 2. Define Font Path (Update this if your font name is different!)
         # We go up from services -> app -> backend -> assets
