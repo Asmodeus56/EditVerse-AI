@@ -115,4 +115,14 @@ def process_video_edit(job_id: str, prompt: str):
 
     except Exception as e:
         print(f"❌ [WORKER] FAILED: {str(e)}")
+        # Update DB status so frontend stops polling
+        try:
+            job = db.query(VideoJob).filter(VideoJob.id == job_id).first()
+            if job:
+                job.status = "FAILED"
+                job.error_message = str(e)
+                job.ai_reply = f"Something went wrong: {str(e)}"
+                db.commit()
+        except:
+            pass
         return {"status": "FAILED", "error": str(e)}
