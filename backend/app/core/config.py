@@ -36,7 +36,7 @@ class Settings(BaseSettings):
     # The URL for SambaNova's API
     SAMBANOVA_BASE_URL: str = "https://api.sambanova.ai/v1" 
     # We will use the fast Llama 3.1 8B model
-    SAMBANOVA_MODEL: str = "Meta-Llama-3.1-8B-Instruct"
+    SAMBANOVA_MODEL: str = "Meta-Llama-3.3-70B-Instruct"
 
     # @property
     # def CELERY_BROKER_URL(self) -> str:

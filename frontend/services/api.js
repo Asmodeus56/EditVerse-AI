@@ -1,8 +1,6 @@
 // src/services/api.js
 import axios from 'axios';
-
-// CHANGE THIS if your backend runs on a different port
-const API_BASE_URL = 'http://localhost:8000'; 
+import { API_BASE_URL } from '../src/config.js';
 
 export const api = {
     // 1. Upload Video

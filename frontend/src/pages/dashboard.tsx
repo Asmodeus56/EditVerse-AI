@@ -1437,7 +1437,7 @@ const Dashboard = () => {
                             <div key={job.id} className="project-card">
 
                               <div className="thumbnail-box">
-                                <video src={`http://localhost:8000/jobs/${job.id}/download`} className="thumb-video" />
+                                <video src={`${API_URL}/jobs/${job.id}/download`} className="thumb-video" />
                               </div>
 
                               <div className="project-info">
