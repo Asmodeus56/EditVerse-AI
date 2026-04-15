@@ -1,0 +1,25 @@
+# Node
+node_modules/
+package-lock.json
+
+# Python
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+
+# Environment & Secrets
+.env
+.env.txt
+
+# Database files
+*.db
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temp / junk files
+*.log
+temp_storage/

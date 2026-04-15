@@ -10,16 +10,9 @@ import os
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 env_path = PROJECT_ROOT / '.env'
 
-print(f"---------------------------------------------------------")
+# Only log path info, never log file contents
 print(f"DEBUG: Looking for .env file at: {env_path}")
 print(f"DEBUG: Does the file exist? {env_path.exists()}")
-print(f"---------------------------------------------------------")
-
-
-try:
-    print(f"DEBUG: Content Preview: {env_path.read_text()}")
-except Exception as e:
-    print(f"DEBUG: Could not read file: {e}")
 
 # 2. Load the .env file explicitly
 load_dotenv(dotenv_path=env_path) 
@@ -39,7 +32,7 @@ class Settings(BaseSettings):
     # REDIS_HOST: str = "localhost"
     # REDIS_PORT: int = 6379
     
-    SAMBANOVA_API_KEY: str="3ba5261e-561f-4d19-b856-347f7b8840ef"
+    SAMBANOVA_API_KEY: str = ""
     # The URL for SambaNova's API
     SAMBANOVA_BASE_URL: str = "https://api.sambanova.ai/v1" 
     # We will use the fast Llama 3.1 8B model
