@@ -101,12 +101,16 @@ def get_video_metadata(file_path: str):
         except:
             fps = 30.0
 
+        # Check for audio stream
+        audio_stream = next((stream for stream in probe['streams'] if stream['codec_type'] == 'audio'), None)
+
         return {
             "duration": float(video_stream.get('duration', 0)),
             "width": int(video_stream.get('width', 0)),
             "height": int(video_stream.get('height', 0)),
             "codec": video_stream.get('codec_name', 'unknown'),
-            "fps": fps
+            "fps": fps,
+            "has_audio": audio_stream is not None
         }
     except ffmpeg.Error as e:
         print(f"FFmpeg Error: {e.stderr.decode('utf8') if e.stderr else str(e)}")
@@ -136,9 +140,15 @@ def apply_edits(input_path: str, actions: list) -> str:
         width = meta['width']
         height = meta['height']
         # 1. Setup Input Streams - explicitly separate video and audio
+        has_audio = meta.get('has_audio', False)
         inp = ffmpeg.input(input_path)
         stream = inp.video
-        audio = inp.audio
+        if has_audio:
+            audio = inp.audio
+        else:
+            # Generate silent audio track for videos without audio
+            print("⚠️ No audio stream found in video. Generating silent audio.")
+            audio = ffmpeg.input('anullsrc=r=48000:cl=stereo', f='lavfi').filter('atrim', duration=meta.get('duration', 10))
         music_stream = None
         # 2. Define Font Path (Update this if your font name is different!)
         # We go up from services -> app -> backend -> assets
@@ -170,18 +180,17 @@ def apply_edits(input_path: str, actions: list) -> str:
         # 3. Apply Actions
         for action in actions:
             
-            # --- TRIM ---
             if action['type'] == 'trim':
-                stream = stream.trim(start=action['start'], end=action['end']).setpts('PTS-STARTPTS')
+                stream = stream.filter('trim', start=action['start'], end=action['end']).filter('setpts', 'PTS-STARTPTS')
                 audio = audio.filter_('atrim', start=action['start'], end=action['end']).filter_('asetpts', 'PTS-STARTPTS')
             
             # --- FILTERS ---
             elif action['type'] == 'filter':
                 name=action.get('name')
                 if name == 'grayscale':
-                    stream = stream.hue(s=0)
+                    stream = stream.filter('hue', s=0)
                 elif name== 'contrast' or name=='dramatic':
-                    stream = stream.eq(contrast=1.5)
+                    stream = stream.filter('eq', contrast=1.5)
                 elif name == 'warm_tone' or name == 'warmtone':
                     # Increase Red, Decrease Blue slightly
                     stream = stream.filter('colorbalance', rs=0.1, bs=-0.1)
@@ -236,7 +245,7 @@ def apply_edits(input_path: str, actions: list) -> str:
             elif action['type'] == 'speed':
                 factor = float(action['value'])
                 # Video Speed: setpts = 1/factor
-                stream = stream.setpts(f'{1/factor}*PTS')
+                stream = stream.filter('setpts', f'{1/factor}*PTS')
                 # Audio Speed: atempo (limited to 0.5 - 2.0 range per filter)
                 # For simple MVP, we assume factor is between 0.5 and 2.0
                 audio = audio.filter_('atempo', factor)
@@ -344,18 +353,23 @@ def apply_edits(input_path: str, actions: list) -> str:
           # ------------------------
 
         # 4. Output
-        if music_stream:
-            # 'duration=first' means cut the music when the video ends
-            # 'dropout_transition=0' makes it seamless
+        if music_stream and has_audio:
+            # Mix original audio with music
             mixed_audio = ffmpeg.filter([audio, music_stream], 'amix', duration='first', dropout_transition=0)
-            stream = ffmpeg.output(stream, mixed_audio, output_path)
+            out = ffmpeg.output(stream, mixed_audio, output_path)
+        elif music_stream and not has_audio:
+            # No original audio, just use music as the audio track
+            out = ffmpeg.output(stream, music_stream, output_path)
+        elif has_audio:
+            # Standard output with original audio
+            out = ffmpeg.output(stream, audio, output_path)
         else:
-            # Standard output if no music
-            stream = ffmpeg.output(stream, audio, output_path)
-            print("🎬 Running FFmpeg...")
+            # No audio at all, video only output
+            out = ffmpeg.output(stream, output_path)
+        print("🎬 Running FFmpeg...")
 
 
-        ffmpeg.run(stream, overwrite_output=True)
+        ffmpeg.run(out, overwrite_output=True)
         
         return output_path
 
