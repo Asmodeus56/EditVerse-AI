@@ -183,10 +183,10 @@ def apply_edits(input_path: str, actions: list) -> str:
                     stream = stream.eq(contrast=1.5)
                 elif name == 'warm_tone' or name == 'warmtone':
                     # Increase Red, Decrease Blue slightly
-                    stream = stream.colorbalance(rs=0.1, bs=-0.1)
+                    stream = stream.filter('colorbalance', rs=0.1, bs=-0.1)
                 elif name == 'cool_tone':
                     # Increase Blue
-                    stream = stream.colorbalance(bs=0.2)
+                    stream = stream.filter('colorbalance', bs=0.2)
                 elif name == 'retro' or name == 'vintage':
                     print("📼 Applying Retro/VHS Effect...")
                     
