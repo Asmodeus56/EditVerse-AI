@@ -622,8 +622,7 @@ const EditorPage = () => {
                     clearInterval(statusPollRef.current);
                     setIsProcessing(false);
                     statusPollRef.current = null;
-                    const failMsg = data.ai_reply || data.error || 'Editing failed. Please try again.';
-                    setMessages(prev => [...prev, { id: Date.now(), role: 'assistant', content: failMsg, timestamp: new Date() }]);
+                    setMessages(prev => [...prev, { id: Date.now(), role: 'assistant', content: 'Editing failed. Check backend logs.', timestamp: new Date() }]);
                 } else {
                     // update UI status if you want
                 }

@@ -167,7 +167,7 @@ def apply_edits(input_path: str, actions: list) -> str:
                 video_parts = []
                 audio_parts = []
                 for start, end in segments:
-                    v_cut = stream.filter('trim', start=start, end=end).filter('setpts', 'PTS-STARTPTS')
+                    v_cut = stream.trim(start=start, end=end).setpts('PTS-STARTPTS')
                     a_cut = audio.filter_('atrim', start=start, end=end).filter_('asetpts', 'PTS-STARTPTS')
                     video_parts.append(v_cut)
                     audio_parts.append(a_cut)
@@ -262,13 +262,13 @@ def apply_edits(input_path: str, actions: list) -> str:
                 else:
                     y_pos = '(h-text_h)/2' # Center
 
-                stream = stream.filter('drawtext',
+                stream = stream.drawtext(
                     text=content,
                     fontfile=font_str,
                     fontsize=64,
                     fontcolor='white',
-                    x='(w-text_w)/2',
-                    y=y_pos,
+                    x='(w-text_w)/2', # Always center horizontally
+                    y=y_pos,          # Variable vertical position
                     borderw=2,
                     bordercolor='black'
                 )
