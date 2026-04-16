@@ -32,15 +32,17 @@ def get_current_user_id(token: str = Depends(oauth2_scheme),db: Session = Depend
     # payload = decode_access_token(token)
     user_id_str = decode_access_token(token)
     if not user_id_str:
-        raise HTTPException(status_code=401, detail="Invalid token")
+        print(f"🔒 [AUTH] Token validation FAILED — token was invalid or expired")
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
     
     user_id = int(user_id_str)
 
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
+        print(f"🔒 [AUTH] User id={user_id} from token NOT FOUND in database")
         raise HTTPException(status_code=404, detail="User not found")
 
-    
+    print(f"✅ [AUTH] Authenticated user_id={user_id}")
     return user_id
 
 
@@ -85,6 +87,7 @@ async def upload_video(background_tasks: BackgroundTasks,
     Handles the upload of a video file, saves it locally, and creates a
     PENDING job entry in the database.
     """
+    print(f"📤 [UPLOAD] Received upload request from user_id={user_id}, file={file.filename}, size={file.size}")
     
     # 1. Generate a unique filename and define the final path
     # We use a UUID to ensure the filename is unique, preventing overwrites.
@@ -92,35 +95,40 @@ async def upload_video(background_tasks: BackgroundTasks,
     unique_filename = f"{uuid.uuid4()}{file_extension}"
     file_path = UPLOAD_DIR / unique_filename
 
+    print(f"📂 [UPLOAD] Saving to: {file_path}")
+
     # 2. Save the file locally using efficient stream copying
     try:
         # Open the destination file in binary write mode
         with open(file_path, "wb") as buffer:
             # Use shutil to efficiently copy the contents of the uploaded file
             shutil.copyfileobj(file.file, buffer)
+        print(f"✅ [UPLOAD] File saved successfully: {unique_filename}")
     except Exception as e:
-        print(f"File upload error: {e}")
+        print(f"❌ [UPLOAD] File save error: {e}")
         return {"message": "There was an error saving the uploaded file.", "error": str(e)}
     finally:
         # Important: Close the UploadFile object
         await file.close()
 
     # 3. Create a PENDING job record in the database
-    # In a real app, user_id would come from the authentication token.
-   
-    new_job = VideoJob(
-        user_id=user_id,
-        original_file_path=str(file_path),
-        prompt="Awaiting user prompt...",
-        status="UPLOADED"
-    )
-    db.add(new_job)
-    db.commit()
-    db.refresh(new_job) # Reload the job object to get its generated ID
-
-    # dummy_video_processing.delay(str(new_job.id), unique_filename)
+    try:
+        new_job = VideoJob(
+            user_id=user_id,
+            original_file_path=str(file_path),
+            prompt="Awaiting user prompt...",
+            status="UPLOADED"
+        )
+        db.add(new_job)
+        db.commit()
+        db.refresh(new_job) # Reload the job object to get its generated ID
+        print(f"✅ [UPLOAD] Job created in DB: job_id={new_job.id}")
+    except Exception as e:
+        print(f"❌ [UPLOAD] DB error creating job: {e}")
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
     background_tasks.add_task(dummy_video_processing, str(new_job.id), unique_filename)
+    print(f"🚀 [UPLOAD] Background processing queued for job_id={new_job.id}")
 
     return {
         "message": "File uploaded successfully. Ready for prompt submission.",

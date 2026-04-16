@@ -28,6 +28,7 @@ export default function VideoPreview({
   onUpdateStickerPosition,
   onRemoveText,
   onRemoveSticker,
+  isUploading = false,
 }) {
   const [hasVideo, setHasVideo] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -499,6 +500,39 @@ export default function VideoPreview({
             {/* Sticker Overlays */}
             {stickers.map(sticker => renderStickerOverlay(sticker))}
 
+            {/* Upload Progress Overlay */}
+            {isUploading && (
+              <div style={styles.uploadingOverlay}>
+                <div style={styles.uploadingContent}>
+                  <div style={styles.uploadRing}>
+                    <svg width="80" height="80" viewBox="0 0 80 80">
+                      <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="4" />
+                      <circle cx="40" cy="40" r="34" fill="none" stroke="url(#uploadGradient)" strokeWidth="4" strokeLinecap="round" strokeDasharray="160" strokeDashoffset="40" style={{ animation: 'uploadSpin 1.4s ease-in-out infinite' }} />
+                      <defs>
+                        <linearGradient id="uploadGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#3b82f6" />
+                          <stop offset="50%" stopColor="#8b5cf6" />
+                          <stop offset="100%" stopColor="#ec4899" />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                    <div style={styles.uploadIconInner}>
+                      <Upload size={24} />
+                    </div>
+                  </div>
+                  <p style={styles.uploadingText}>Uploading to server</p>
+                  <div style={styles.uploadingDots}>
+                    <span style={{ ...styles.dot, animationDelay: '0s' }}>•</span>
+                    <span style={{ ...styles.dot, animationDelay: '0.2s' }}>•</span>
+                    <span style={{ ...styles.dot, animationDelay: '0.4s' }}>•</span>
+                  </div>
+                  <p style={styles.uploadingSubtext}>
+                    Free tier may take ~1 min to connect
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Processing Overlay */}
             {isProcessing && (
               <div style={styles.processingOverlay}>
@@ -692,6 +726,63 @@ const styles = {
     transition: 'all 0.2s',
     pointerEvents: 'all',
   },
+  uploadingOverlay: {
+    position: 'absolute',
+    top: 0, left: 0, right: 0, bottom: 0,
+    background: 'rgba(0,0,0,0.75)',
+    backdropFilter: 'blur(4px)',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 55,
+    animation: 'uploadGlow 2s ease-in-out infinite',
+  },
+  uploadingContent: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '12px',
+  },
+  uploadRing: {
+    position: 'relative',
+    width: '80px',
+    height: '80px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  uploadIconInner: {
+    position: 'absolute',
+    color: 'white',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  uploadingText: {
+    color: 'white',
+    fontSize: '18px',
+    fontWeight: '600',
+    margin: 0,
+    letterSpacing: '0.5px',
+  },
+  uploadingDots: {
+    display: 'flex',
+    gap: '6px',
+    fontSize: '24px',
+    lineHeight: '1',
+  },
+  dot: {
+    color: '#8b5cf6',
+    animation: 'dotPulse 1.2s ease-in-out infinite',
+    display: 'inline-block',
+  },
+  uploadingSubtext: {
+    color: '#9ca3af',
+    fontSize: '13px',
+    margin: 0,
+    marginTop: '4px',
+  },
   processingOverlay: {
     position: 'absolute',
     top: 0, left: 0, right: 0, bottom: 0,
@@ -830,13 +921,26 @@ const styles = {
   },
 };
 
-// Add keyframes for spinner
+// Add keyframes for spinner and upload animations
 if (typeof document !== 'undefined') {
   const styleEl = document.createElement('style');
   styleEl.textContent = `
     @keyframes spin {
       from { transform: rotate(0deg); }
       to { transform: rotate(360deg); }
+    }
+    @keyframes uploadSpin {
+      0% { stroke-dashoffset: 160; transform-origin: center; transform: rotate(0deg); }
+      50% { stroke-dashoffset: 40; }
+      100% { stroke-dashoffset: 160; transform-origin: center; transform: rotate(360deg); }
+    }
+    @keyframes dotPulse {
+      0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+      40% { opacity: 1; transform: scale(1.3); }
+    }
+    @keyframes uploadGlow {
+      0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.2); }
+      50% { box-shadow: 0 0 40px rgba(139, 92, 246, 0.4); }
     }
   `;
   if (!document.querySelector('[data-editverse-spinner]')) {

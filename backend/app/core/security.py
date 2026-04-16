@@ -24,7 +24,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=30) # Default 30 mins
+        expire = datetime.utcnow() + timedelta(days=7)  # 7 days so sessions don't expire quickly
     
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm="HS256")
@@ -35,7 +35,9 @@ def decode_access_token(token: str):
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id: str = payload.get("sub")
         if user_id is None:
+            print("⚠️ [AUTH] Token decoded but 'sub' claim is missing")
             return None
         return user_id
-    except JWTError:
+    except JWTError as e:
+        print(f"⚠️ [AUTH] Token decode failed: {e}")
         return None

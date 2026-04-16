@@ -28,6 +28,7 @@ const EditorPage = () => {
     const [isDownloading, setIsDownloading] = useState(false);
     // Inside your component
     const [isProcessing, setIsProcessing] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
 
     const videoSeekRef = useRef(null);
     const videoRef = useRef(null);
@@ -353,6 +354,7 @@ const EditorPage = () => {
         const localBlobUrl = URL.createObjectURL(file);
         setHasVideo(true);
         setVideoSrc(localBlobUrl);
+        setIsUploading(true); // Show upload loading animation
 
         const initialClip = {
             id: Date.now(),
@@ -367,14 +369,21 @@ const EditorPage = () => {
 
         // 2. Then try backend upload in background (for AI editing + export)
         try {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                throw new Error("AUTH_MISSING");
+            }
+
             const formData = new FormData();
             formData.append("file", file);
 
+            console.log("Uploading to backend...", `${API_URL}/jobs/upload`);
             const res = await axios.post(`${API_URL}/jobs/upload`, formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
-                    "Authorization": `Bearer ${localStorage.getItem("token")}`
+                    "Authorization": `Bearer ${token}`
                 },
+                timeout: 120000, // 2 minute timeout for large files
             });
 
             if (res && res.data) {
@@ -396,13 +405,28 @@ const EditorPage = () => {
                 }]);
             }
         } catch (err) {
-            console.error("Backend upload failed (manual editing still works):", err);
+            console.error("Backend upload failed:", err);
+
+            let errorMsg = '⚠️ Backend connection failed — manual editing tools work fine! AI features need the backend running.';
+
+            if (err.message === "AUTH_MISSING") {
+                errorMsg = '🔒 Not logged in! Please log out and log back in to enable AI features and export.';
+            } else if (err.response && err.response.status === 401) {
+                errorMsg = '🔒 Session expired! Please log out and log back in, then re-upload your video.';
+            } else if (err.response && err.response.status === 413) {
+                errorMsg = '📦 Video file is too large for the server. Try a smaller file.';
+            } else if (err.code === 'ECONNABORTED') {
+                errorMsg = '⏰ Upload timed out — the server may be waking up. Try again in a minute.';
+            }
+
             setMessages(prev => [...prev, {
                 id: Date.now(),
                 role: 'assistant',
-                content: '⚠️ Backend connection failed — manual editing tools work fine! AI features need the backend running.',
+                content: errorMsg,
                 timestamp: new Date()
             }]);
+        } finally {
+            setIsUploading(false); // Hide upload loading animation
         }
     };
 
@@ -912,6 +936,7 @@ const EditorPage = () => {
                         onProjectNameChange={handleProjectNameChange}
                         adjustments={adjustments}
                         isProcessing={isProcessing}
+                        isUploading={isUploading}
                         textOverlays={textOverlays}
                         stickers={stickers}
                         appliedEffects={appliedEffects}
