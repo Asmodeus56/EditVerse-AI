@@ -21,13 +21,17 @@ export default function Timeline({
   onUndo,
   onRedo,
   canUndo,
-  canRedo
+  canRedo,
+  videoRef,
+  videoSrc,
+  appliedTransition
 }) {
   const timelineRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
   const [zoom, setZoom] = useState(100);
   const [snapToGrid, setSnapToGrid] = useState(true);
   const tracksContainerRef = useRef(null);
+  const [frameThumbnails, setFrameThumbnails] = useState([]); // Array of data URLs
 
   const handleZoomIn = () => {
     setZoom(prev => Math.min(prev + 25, 200));
@@ -52,6 +56,64 @@ export default function Timeline({
     container.addEventListener('wheel', handleWheel, { passive: false });
     return () => container.removeEventListener('wheel', handleWheel);
   }, []);
+
+  // Extract video frame thumbnails
+  useEffect(() => {
+    if (!videoSrc || !hasVideo || !duration || duration <= 0) return;
+
+    const extractFrames = async () => {
+      try {
+        const video = document.createElement('video');
+        video.crossOrigin = 'anonymous';
+        video.muted = true;
+        video.preload = 'auto';
+
+        // Use blob URL if it's a blob, otherwise direct
+        video.src = videoSrc;
+
+        await new Promise((resolve, reject) => {
+          video.onloadeddata = resolve;
+          video.onerror = reject;
+          setTimeout(reject, 10000); // timeout after 10s
+        });
+
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const thumbWidth = 120;
+        const thumbHeight = 68;
+        canvas.width = thumbWidth;
+        canvas.height = thumbHeight;
+
+        const numFrames = 16;
+        const frames = [];
+        const videoDuration = video.duration || duration;
+
+        for (let i = 0; i < numFrames; i++) {
+          const time = (i / numFrames) * videoDuration + 0.1; // slight offset
+          video.currentTime = Math.min(time, videoDuration - 0.1);
+          await new Promise(resolve => {
+            video.onseeked = resolve;
+            setTimeout(resolve, 500);
+          });
+          ctx.drawImage(video, 0, 0, thumbWidth, thumbHeight);
+          try {
+            frames.push(canvas.toDataURL('image/jpeg', 0.5));
+          } catch (e) {
+            // CORS issue - use a colored placeholder
+            frames.push(null);
+          }
+        }
+
+        setFrameThumbnails(frames);
+        video.remove();
+      } catch (err) {
+        console.warn('Could not extract video frames:', err);
+        setFrameThumbnails([]);
+      }
+    };
+
+    extractFrames();
+  }, [videoSrc, hasVideo, duration]);
 
   const updateTimeFromMousePosition = (clientX) => {
     if (timelineRef.current) {
@@ -322,10 +384,24 @@ export default function Timeline({
                       }}
                     >
                       <div style={styles.clipThumbnails}>
-                        {[...Array(8)].map((_, i) => (
-                          <div key={i} style={styles.clipThumbnail}></div>
+                        {[...Array(16)].map((_, i) => (
+                          <div key={i} style={
+                            frameThumbnails[i] ? {
+                              flex: 1,
+                              backgroundImage: `url(${frameThumbnails[i]})`,
+                              backgroundSize: 'cover',
+                              backgroundPosition: 'center',
+                              minWidth: 0,
+                            } : styles.clipThumbnail
+                          }></div>
                         ))}
                       </div>
+                      {/* Transition indicator badge */}
+                      {appliedTransition && appliedTransition.clipId === clip.id && (
+                        <div style={styles.transitionBadge}>
+                          ✦ {appliedTransition.name}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -615,11 +691,27 @@ const styles = {
   clipThumbnails: {
     display: 'flex',
     height: '100%',
-    gap: '1px',
+    gap: '0px',
   },
   clipThumbnail: {
     flex: 1,
     background: 'linear-gradient(135deg, #52525b 0%, #3f3f46 100%)',
+    minWidth: 0,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+  },
+  transitionBadge: {
+    position: 'absolute',
+    bottom: '2px',
+    right: '4px',
+    padding: '1px 6px',
+    background: 'rgba(139, 92, 246, 0.9)',
+    borderRadius: '3px',
+    fontSize: '9px',
+    color: 'white',
+    fontWeight: '600',
+    whiteSpace: 'nowrap',
+    zIndex: 3,
   },
   audioClip: {
     background: '#1e40af',

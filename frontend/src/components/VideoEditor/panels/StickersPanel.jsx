@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search, X } from 'lucide-react';
 
-export default function StickersPanel({ onAddSticker, stickers = [] }) {
+export default function StickersPanel({ onAddSticker, stickers = [], onRemoveSticker }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
 
@@ -179,6 +179,13 @@ export default function StickersPanel({ onAddSticker, stickers = [] }) {
                   {renderSticker(sticker)}
                 </div>
                 <div style={styles.activeName}>{sticker.name}</div>
+                <button
+                  style={styles.removeButton}
+                  onClick={() => onRemoveSticker && onRemoveSticker(sticker.id)}
+                  title="Remove sticker"
+                >
+                  <X size={14} />
+                </button>
               </div>
             ))}
           </div>
@@ -330,5 +337,19 @@ const styles = {
     flex: 1,
     fontSize: '12px',
     color: '#e4e4e7',
+  },
+  removeButton: {
+    width: '24px',
+    height: '24px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: 'transparent',
+    border: '1px solid #52525b',
+    borderRadius: '4px',
+    color: '#ef4444',
+    cursor: 'pointer',
+    flexShrink: 0,
+    transition: 'all 0.2s',
   },
 };

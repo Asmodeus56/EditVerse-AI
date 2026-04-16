@@ -81,3 +81,7 @@ app.include_router(auth.router, prefix="/auth", tags=["Auth"]) # <-- Add this
 @app.get("/status")
 async def get_status():
     return {"status": "ok", "service": app.title}
+
+@app.get("/keep-alive")
+def keep_alive():
+    return {"status": "Awake and running!"}

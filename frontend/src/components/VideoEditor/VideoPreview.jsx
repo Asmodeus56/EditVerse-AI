@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Play, Pause, Upload, Volume2, VolumeX, Maximize2 } from 'lucide-react';
 
 export default function VideoPreview({
@@ -19,7 +19,15 @@ export default function VideoPreview({
   onProjectNameChange,
   adjustments,
   videoSrc,
-  isProcessing
+  isProcessing,
+  textOverlays = [],
+  stickers = [],
+  appliedEffects = [],
+  appliedFilter,
+  onUpdateTextPosition,
+  onUpdateStickerPosition,
+  onRemoveText,
+  onRemoveSticker,
 }) {
   const [hasVideo, setHasVideo] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -29,7 +37,10 @@ export default function VideoPreview({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const internalVideoRef = useRef(null);
   const inputRef = useRef(null);
+  const videoContainerRef = useRef(null);
 
+  // Drag state for overlays
+  const [draggingOverlay, setDraggingOverlay] = useState(null); // { type: 'text'|'sticker', id, startX, startY, startPosX, startPosY }
 
   // Expose the video seek function to parent
   useEffect(() => {
@@ -42,15 +53,13 @@ export default function VideoPreview({
     }
   }, [videoSeekRef]);
 
-  // 👇 ADD THIS NEW EFFECT 👇
-  // This syncs the parent's videoSrc with this component's internal state
+  // Sync the parent's videoSrc with this component's internal state
   useEffect(() => {
     if (videoSrc) {
       setVideoUrl(videoSrc);
       setHasVideo(true);
     }
   }, [videoSrc]);
-  // 👆 END NEW EFFECT 👆
 
   // Sync video muted state
   useEffect(() => {
@@ -59,37 +68,62 @@ export default function VideoPreview({
     }
   }, [isMuted]);
 
-  // Apply CSS filters based on adjustments
+  // Build comprehensive CSS filter string
   const getVideoFilters = () => {
     const filters = [];
+
+    // Base adjustments
+    if (adjustments.brightness !== 0) filters.push(`brightness(${(100 + adjustments.brightness) / 100})`);
+    if (adjustments.contrast !== 0) filters.push(`contrast(${(100 + adjustments.contrast) / 100})`);
+    if (adjustments.saturation !== 0) filters.push(`saturate(${(100 + adjustments.saturation) / 100})`);
     if (adjustments.hue !== 0) filters.push(`hue-rotate(${adjustments.hue}deg)`);
-    if (adjustments.saturation !== 0) filters.push(`saturate(${100 + adjustments.saturation}%)`);
-    if (adjustments.brightness !== 0) filters.push(`brightness(${100 + adjustments.brightness}%)`);
-    if (adjustments.contrast !== 0) filters.push(`contrast(${100 + adjustments.contrast}%)`);
-    return filters.join(' ');
+
+    // Temperature - warm = sepia + slight hue shift
+    if (adjustments.temperature > 0) {
+      filters.push(`sepia(${adjustments.temperature * 0.4}%)`);
+    } else if (adjustments.temperature < 0) {
+      // Cool = slight blue hue shift
+      filters.push(`hue-rotate(${adjustments.temperature * 1.5}deg)`);
+    }
+
+    // Highlights & Shadows via brightness
+    if (adjustments.highlight !== 0) {
+      filters.push(`brightness(${(100 + adjustments.highlight * 0.3) / 100})`);
+    }
+    if (adjustments.shadows !== 0) {
+      filters.push(`brightness(${(100 + adjustments.shadows * 0.2) / 100})`);
+    }
+
+    // Sharpness - approximate with contrast
+    if (adjustments.sharpness > 0) {
+      filters.push(`contrast(${(100 + adjustments.sharpness * 0.3) / 100})`);
+    }
+
+    // Tint via hue-rotate
+    if (adjustments.tint !== 0) {
+      filters.push(`hue-rotate(${adjustments.tint * 0.5}deg)`);
+    }
+
+    // Applied effects CSS filters
+    appliedEffects.forEach(effect => {
+      switch (effect.id) {
+        case 'blur': filters.push(`blur(${effect.intensity || 5}px)`); break;
+        case 'grayscale': filters.push(`grayscale(${effect.intensity || 100}%)`); break;
+        case 'sepia': filters.push(`sepia(${effect.intensity || 80}%)`); break;
+        case 'invert': filters.push(`invert(${effect.intensity || 100}%)`); break;
+        case 'brightness': filters.push(`brightness(${(effect.intensity || 150) / 100})`); break;
+        case 'contrast': filters.push(`contrast(${(effect.intensity || 150) / 100})`); break;
+        case 'saturate': filters.push(`saturate(${(effect.intensity || 200) / 100})`); break;
+        case 'hue': filters.push(`hue-rotate(${effect.intensity || 90}deg)`); break;
+        case 'opacity': filters.push(`opacity(${(effect.intensity || 50) / 100})`); break;
+        case 'drop-shadow': filters.push(`drop-shadow(0 10px 20px rgba(0,0,0,0.5))`); break;
+        default: break;
+      }
+    });
+
+    return filters.length > 0 ? filters.join(' ') : 'none';
   };
 
-  // const handleFileUpload = (file) => {
-  //   if (file && file.type.startsWith('video/')) {
-  //     const url = URL.createObjectURL(file);
-  //     setVideoUrl(url);
-  //     setHasVideo(true);
-  //     if (onVideoUpload) onVideoUpload();
-
-  //     const fileName = file.name.replace(/\.[^/.]+$/, '');
-  //     if (onProjectNameChange) onProjectNameChange(fileName);
-
-  //     if (onProjectCreated) {
-  //       onProjectCreated({
-  //         id: Date.now(),
-  //         name: fileName,
-  //         timestamp: Date.now(),
-  //         clips: 1,
-  //         videoFile: file,
-  //       });
-  //     }
-  //   }
-  // };
   const handleFileUpload = (file) => {
     if (file && file.type && file.type.startsWith('video/')) {
       const url = URL.createObjectURL(file);
@@ -113,7 +147,6 @@ export default function VideoPreview({
       }
     }
   };
-
 
   // Sync video playback with isPlaying state
   useEffect(() => {
@@ -203,6 +236,176 @@ export default function VideoPreview({
     }
   };
 
+  // --- Overlay Drag Logic ---
+  const handleOverlayMouseDown = useCallback((e, type, id) => {
+    e.stopPropagation();
+    e.preventDefault();
+    const container = videoContainerRef.current;
+    if (!container) return;
+    const rect = container.getBoundingClientRect();
+    const overlays = type === 'text' ? textOverlays : stickers;
+    const overlay = overlays.find(o => o.id === id);
+    if (!overlay) return;
+
+    setDraggingOverlay({
+      type,
+      id,
+      startX: e.clientX,
+      startY: e.clientY,
+      startPosX: overlay.position.x,
+      startPosY: overlay.position.y,
+      containerWidth: rect.width,
+      containerHeight: rect.height,
+    });
+  }, [textOverlays, stickers]);
+
+  useEffect(() => {
+    if (!draggingOverlay) return;
+
+    const handleMouseMove = (e) => {
+      const { type, id, startX, startY, startPosX, startPosY, containerWidth, containerHeight } = draggingOverlay;
+      const deltaX = ((e.clientX - startX) / containerWidth) * 100;
+      const deltaY = ((e.clientY - startY) / containerHeight) * 100;
+      const newX = Math.max(5, Math.min(95, startPosX + deltaX));
+      const newY = Math.max(5, Math.min(95, startPosY + deltaY));
+
+      if (type === 'text' && onUpdateTextPosition) {
+        onUpdateTextPosition(id, { x: newX, y: newY });
+      } else if (type === 'sticker' && onUpdateStickerPosition) {
+        onUpdateStickerPosition(id, { x: newX, y: newY });
+      }
+    };
+
+    const handleMouseUp = () => {
+      setDraggingOverlay(null);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [draggingOverlay, onUpdateTextPosition, onUpdateStickerPosition]);
+
+  // Render text overlay
+  const renderTextOverlay = (overlay) => {
+    const getTextStyle = () => {
+      const base = {
+        fontFamily: overlay.font || 'Inter, sans-serif',
+        color: overlay.color || '#ffffff',
+        fontSize: '24px',
+        fontWeight: '600',
+        textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
+        userSelect: 'none',
+        whiteSpace: 'nowrap',
+      };
+      if (overlay.style === 'bold') base.fontWeight = '700';
+      if (overlay.style === 'title') { base.fontSize = '36px'; base.fontWeight = '700'; }
+      if (overlay.style === 'subtitle') { base.fontSize = '22px'; base.fontWeight = '600'; }
+      if (overlay.style === 'outline') {
+        base.WebkitTextStroke = '2px white';
+        base.color = 'transparent';
+      }
+      if (overlay.style === 'shadow') {
+        base.textShadow = '4px 4px 8px rgba(0,0,0,0.9)';
+      }
+      // Handle gradient color
+      if (typeof overlay.color === 'string' && overlay.color.startsWith('linear-gradient')) {
+        base.background = overlay.color;
+        base.WebkitBackgroundClip = 'text';
+        base.WebkitTextFillColor = 'transparent';
+      }
+      return base;
+    };
+
+    return (
+      <div
+        key={overlay.id}
+        style={{
+          position: 'absolute',
+          left: `${overlay.position.x}%`,
+          top: `${overlay.position.y}%`,
+          transform: 'translate(-50%, -50%)',
+          cursor: draggingOverlay?.id === overlay.id ? 'grabbing' : 'grab',
+          zIndex: 10,
+          padding: '6px 14px',
+          borderRadius: '6px',
+          background: 'rgba(0,0,0,0.3)',
+          backdropFilter: 'blur(2px)',
+          border: '1px solid rgba(255,255,255,0.15)',
+          transition: draggingOverlay?.id === overlay.id ? 'none' : 'left 0.05s, top 0.05s',
+        }}
+        onMouseDown={(e) => handleOverlayMouseDown(e, 'text', overlay.id)}
+        onDoubleClick={(e) => {
+          e.stopPropagation();
+          if (onRemoveText) onRemoveText(overlay.id);
+        }}
+        title="Drag to move • Double-click to remove"
+      >
+        <div style={getTextStyle()}>
+          {overlay.text}
+        </div>
+      </div>
+    );
+  };
+
+  // Render sticker overlay
+  const renderStickerOverlay = (sticker) => {
+    const getContent = () => {
+      if (sticker.emoji) return <span style={{ fontSize: '48px' }}>{sticker.emoji}</span>;
+      if (sticker.icon) return <span style={{ fontSize: '42px' }}>{sticker.icon}</span>;
+      if (sticker.arrow) return <span style={{ fontSize: '52px', color: '#fff', fontWeight: '700' }}>{sticker.arrow}</span>;
+      if (sticker.text) return (
+        <span style={{
+          fontSize: '16px',
+          fontWeight: '700',
+          color: 'white',
+          padding: '8px 16px',
+          borderRadius: '6px',
+          background: sticker.color || '#3b82f6',
+        }}>
+          {sticker.text}
+        </span>
+      );
+      if (sticker.shape) {
+        const size = '50px';
+        const shapeStyle = {
+          width: size,
+          height: size,
+          background: sticker.color || '#3b82f6',
+          borderRadius: sticker.shape === 'circle' ? '50%' : '4px',
+        };
+        return <div style={shapeStyle} />;
+      }
+      return null;
+    };
+
+    return (
+      <div
+        key={sticker.id}
+        style={{
+          position: 'absolute',
+          left: `${sticker.position.x}%`,
+          top: `${sticker.position.y}%`,
+          transform: 'translate(-50%, -50%)',
+          cursor: draggingOverlay?.id === sticker.id ? 'grabbing' : 'grab',
+          zIndex: 11,
+          transition: draggingOverlay?.id === sticker.id ? 'none' : 'left 0.05s, top 0.05s',
+          filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.5))',
+        }}
+        onMouseDown={(e) => handleOverlayMouseDown(e, 'sticker', sticker.id)}
+        onDoubleClick={(e) => {
+          e.stopPropagation();
+          if (onRemoveSticker) onRemoveSticker(sticker.id);
+        }}
+        title="Drag to move • Double-click to remove"
+      >
+        {getContent()}
+      </div>
+    );
+  };
+
   return (
     <div style={styles.container}>
       <div style={styles.topBar}>
@@ -264,7 +467,7 @@ export default function VideoPreview({
             </div>
           </div>
         ) : (
-          <div style={styles.videoContainer}>
+          <div style={styles.videoContainer} ref={videoContainerRef}>
             <video
               ref={internalVideoRef}
               src={videoSrc || videoUrl}
@@ -276,21 +479,39 @@ export default function VideoPreview({
               onLoadedMetadata={handleLoadedMetadata}
               onDurationChange={handleDurationChange}
               onTimeUpdate={onTimeUpdate}
+              crossOrigin="anonymous"
             />
-            {/* --- ADD THIS LOADING OVERLAY --- */}
+
+            {/* Vignette Overlay */}
+            {adjustments.vignette > 0 && (
+              <div style={{
+                position: 'absolute',
+                top: 0, left: 0, right: 0, bottom: 0,
+                background: `radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,${adjustments.vignette / 100}) 100%)`,
+                pointerEvents: 'none',
+                zIndex: 5,
+              }} />
+            )}
+
+            {/* Text Overlays */}
+            {textOverlays.map(overlay => renderTextOverlay(overlay))}
+
+            {/* Sticker Overlays */}
+            {stickers.map(sticker => renderStickerOverlay(sticker))}
+
+            {/* Processing Overlay */}
             {isProcessing && (
-              <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center z-50">
-                {/* The Spinner */}
-                <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-500 mb-4"></div>
-                {/* The Text */}
-                <p className="text-white text-lg font-semibold animate-pulse">
+              <div style={styles.processingOverlay}>
+                <div style={styles.spinner}></div>
+                <p style={styles.processingText}>
                   Applying AI Magic...
                 </p>
-                <p className="text-gray-400 text-sm mt-2">
+                <p style={styles.processingSubtext}>
                   (This might take 1-2 mins on free server)
                 </p>
               </div>
             )}
+
             <div style={styles.centerButton}>
               <button style={styles.playOverlay} onClick={onPlayPause}>
                 {isPlaying ? <Pause size={24} /> : <Play size={24} />}
@@ -471,6 +692,36 @@ const styles = {
     transition: 'all 0.2s',
     pointerEvents: 'all',
   },
+  processingOverlay: {
+    position: 'absolute',
+    top: 0, left: 0, right: 0, bottom: 0,
+    background: 'rgba(0,0,0,0.7)',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 50,
+  },
+  spinner: {
+    width: '64px',
+    height: '64px',
+    border: '4px solid transparent',
+    borderTop: '4px solid #a855f7',
+    borderBottom: '4px solid #a855f7',
+    borderRadius: '50%',
+    animation: 'spin 1s linear infinite',
+    marginBottom: '16px',
+  },
+  processingText: {
+    color: 'white',
+    fontSize: '18px',
+    fontWeight: '600',
+  },
+  processingSubtext: {
+    color: '#9ca3af',
+    fontSize: '14px',
+    marginTop: '8px',
+  },
   controlBar: {
     height: '48px',
     background: '#18181b',
@@ -578,3 +829,18 @@ const styles = {
     zIndex: 10,
   },
 };
+
+// Add keyframes for spinner
+if (typeof document !== 'undefined') {
+  const styleEl = document.createElement('style');
+  styleEl.textContent = `
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+  `;
+  if (!document.querySelector('[data-editverse-spinner]')) {
+    styleEl.setAttribute('data-editverse-spinner', '');
+    document.head.appendChild(styleEl);
+  }
+}

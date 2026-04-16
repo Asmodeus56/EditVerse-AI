@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Type, Plus, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
+import { Type, Plus, AlignLeft, AlignCenter, AlignRight, X } from 'lucide-react';
 
-export default function TextPanel({ onAddText, textOverlays = [] }) {
+export default function TextPanel({ onAddText, textOverlays = [], onRemoveText }) {
   const [selectedFont, setSelectedFont] = useState('Inter');
   const [selectedStyle, setSelectedStyle] = useState('default');
 
@@ -172,6 +172,13 @@ export default function TextPanel({ onAddText, textOverlays = [] }) {
               <div key={idx} style={styles.overlayItem}>
                 <Type size={16} style={{ color: '#3b82f6' }} />
                 <div style={styles.overlayText}>{overlay.text}</div>
+                <button 
+                  style={styles.removeButton}
+                  onClick={() => onRemoveText && onRemoveText(overlay.id)}
+                  title="Remove text"
+                >
+                  <X size={14} />
+                </button>
               </div>
             ))}
           </div>
@@ -356,5 +363,19 @@ const styles = {
     overflow: 'hidden',
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap',
+  },
+  removeButton: {
+    width: '24px',
+    height: '24px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: 'transparent',
+    border: '1px solid #52525b',
+    borderRadius: '4px',
+    color: '#ef4444',
+    cursor: 'pointer',
+    flexShrink: 0,
+    transition: 'all 0.2s',
   },
 };

@@ -64,8 +64,55 @@ const EditorPage = () => {
     const [projects, setProjects] = useState([]);
     const [currentProject, setCurrentProject] = useState(null);
 
+    // When video duration becomes known, update clips that have end=0
+    useEffect(() => {
+        if (duration > 0 && clips.length > 0 && clips.some(c => c.end === 0)) {
+            setClips(prev => prev.map(c => c.end === 0 ? { ...c, end: duration } : c));
+        }
+    }, [duration]);
+
     // --- COMING SOON STATE ---
     const [comingSoonData, setComingSoonData] = useState({ open: false, feature: '' });
+
+    // Refs for keyboard handler (avoids stale closures)
+    const clipsRef = useRef(clips);
+    const selectedClipRef = useRef(selectedClip);
+    useEffect(() => { clipsRef.current = clips; }, [clips]);
+    useEffect(() => { selectedClipRef.current = selectedClip; }, [selectedClip]);
+
+    // Keyboard shortcuts: Space = play/pause, Delete/Backspace = delete clip
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            // Don't trigger if typing in an input or textarea
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+            if (e.code === 'Space') {
+                e.preventDefault();
+                setIsPlaying(prev => !prev);
+            } else if (e.code === 'Delete' || e.code === 'Backspace') {
+                e.preventDefault();
+                // Use refs for fresh state
+                const currentClips = clipsRef.current;
+                const currentSelected = selectedClipRef.current;
+
+                if (currentSelected) {
+                    const newClips = currentClips.filter(c => c.id !== currentSelected);
+                    setClips(newClips);
+                    saveToHistory(newClips, musicTracks);
+                    setSelectedClip(newClips.length > 0 ? newClips[0].id : null);
+                    if (newClips.length === 0) {
+                        setHasVideo(false);
+                        setVideoSrc(null);
+                        setDuration(0);
+                        setCurrentTime(0);
+                    }
+                }
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [musicTracks]);
 
     // Helper to trigger the modal
     const showComingSoon = (featureName) => {
@@ -140,10 +187,14 @@ const EditorPage = () => {
 
     const handleUndo = () => {
         if (historyIndex > 0) {
+            const prevState = history[historyIndex - 1];
+            // Don't undo back to empty clips if we have a video loaded
+            if (hasVideo && prevState.clips.length === 0) return;
+            
             const newIndex = historyIndex - 1;
             setHistoryIndex(newIndex);
-            setClips(history[newIndex].clips);
-            setMusicTracks(history[newIndex].musicTracks);
+            setClips(prevState.clips);
+            setMusicTracks(prevState.musicTracks);
         }
     };
 
@@ -157,44 +208,47 @@ const EditorPage = () => {
     };
 
     const handleCut = () => {
+        if (selectedClip) {
+            const clipIndex = clips.findIndex(c => c.id === selectedClip);
+            if (clipIndex !== -1) {
+                const clip = clips[clipIndex];
+                const cutTime = currentTime;
 
-        showComingSoon("Manual Cutting");
-        // if (selectedClip) {
-        //     const clipIndex = clips.findIndex(c => c.id === selectedClip);
-        //     if (clipIndex !== -1) {
-        //         const clip = clips[clipIndex];
-        //         const cutTime = currentTime;
-
-        //         if (cutTime > clip.start && cutTime < clip.end) {
-        //             const newClips = [...clips];
-        //             const newClip = {
-        //                 id: Date.now(),
-        //                 name: `${clip.name} (Cut)`,
-        //                 start: cutTime,
-        //                 end: clip.end,
-        //             };
-        //             newClips[clipIndex] = { ...clip, end: cutTime };
-        //             newClips.splice(clipIndex + 1, 0, newClip);
-        //             setClips(newClips);
-        //             saveToHistory(newClips, musicTracks);
-        //         }
-        //     }
-        // }
+                if (cutTime > clip.start && cutTime < clip.end) {
+                    const newClips = [...clips];
+                    const newClip = {
+                        id: Date.now(),
+                        name: `${clip.name} (Cut)`,
+                        start: cutTime,
+                        end: clip.end,
+                        file: clip.file,
+                    };
+                    newClips[clipIndex] = { ...clip, end: cutTime };
+                    newClips.splice(clipIndex + 1, 0, newClip);
+                    setClips(newClips);
+                    saveToHistory(newClips, musicTracks);
+                }
+            }
+        }
     };
 
     const handleTrim = () => {
-
-        showComingSoon("Manual Trimming");
-        // if (selectedClip) {
-        //     const clipIndex = clips.findIndex(c => c.id === selectedClip);
-        //     if (clipIndex !== -1) {
-        //         const newClips = [...clips];
-        //         const clip = newClips[clipIndex];
-        //         newClips[clipIndex] = { ...clip, end: clip.end - 1 };
-        //         setClips(newClips);
-        //         saveToHistory(newClips, musicTracks);
-        //     }
-        // }
+        if (selectedClip) {
+            const clipIndex = clips.findIndex(c => c.id === selectedClip);
+            if (clipIndex !== -1) {
+                const newClips = [...clips];
+                const clip = newClips[clipIndex];
+                // If playhead is within clip, trim end to playhead
+                // Otherwise trim 1 second from end
+                if (currentTime > clip.start && currentTime < clip.end) {
+                    newClips[clipIndex] = { ...clip, end: currentTime };
+                } else {
+                    newClips[clipIndex] = { ...clip, end: Math.max(clip.start + 0.5, clip.end - 1) };
+                }
+                setClips(newClips);
+                saveToHistory(newClips, musicTracks);
+            }
+        }
     };
 
     const handleDelete = () => {
@@ -202,66 +256,116 @@ const EditorPage = () => {
             const newClips = clips.filter(c => c.id !== selectedClip);
             setClips(newClips);
             saveToHistory(newClips, musicTracks);
-            setSelectedClip(null);
+            setSelectedClip(newClips.length > 0 ? newClips[0].id : null);
+            if (newClips.length === 0) {
+                setHasVideo(false);
+                setVideoSrc(null);
+                setDuration(0);
+                setCurrentTime(0);
+            }
+        } else if (clips.length > 0) {
+            // Auto-select and delete the last clip
+            const lastClip = clips[clips.length - 1];
+            const newClips = clips.filter(c => c.id !== lastClip.id);
+            setClips(newClips);
+            saveToHistory(newClips, musicTracks);
+            setSelectedClip(newClips.length > 0 ? newClips[0].id : null);
+            if (newClips.length === 0) {
+                setHasVideo(false);
+                setVideoSrc(null);
+                setDuration(0);
+                setCurrentTime(0);
+            }
         }
     };
 
-    const handleAddMusic = () => {
+    const handleAddMusic = (fileFromPanel) => {
         if (!hasVideo) return;
 
-        showComingSoon("MuSIC OVERLAYS");
+        const addAudioFile = (file) => {
+            if (file && (file.type.startsWith('audio/') || file.name)) {
+                const newTrack = {
+                    id: Date.now(),
+                    name: file.name || 'Audio Track',
+                    start: 0,
+                    end: duration,
+                    file: URL.createObjectURL(file),
+                };
+                const newMusic = [...musicTracks, newTrack];
+                setMusicTracks(newMusic);
+                saveToHistory(clips, newMusic);
+            }
+        };
 
-        // const input = document.createElement('input');
-        // input.type = 'file';
-        // input.accept = 'audio/*';
-        // input.onchange = (e) => {
-        //     const file = e.target.files[0];
-        //     if (file && file.type.startsWith('audio/')) {
-        //         const newTrack = {
-        //             id: Date.now(),
-        //             name: file.name,
-        //             start: 0,
-        //             end: duration,
-        //             file: URL.createObjectURL(file),
-        //         };
-        //         const newMusic = [...musicTracks, newTrack];
-        //         setMusicTracks(newMusic);
-        //         saveToHistory(clips, newMusic);
-        //     }
-        // };
-        // input.click();
+        if (fileFromPanel) {
+            addAudioFile(fileFromPanel);
+            return;
+        }
+
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'audio/*';
+        input.onchange = (e) => {
+            const file = e.target.files[0];
+            addAudioFile(file);
+        };
+        input.click();
     };
 
-    const handleAddMedia = () => {
-        // if (!hasVideo) return;
-        showComingSoon("Media Overlays");
+    const handleAddMedia = (fileFromPanel) => {
+        const addMediaFile = (file) => {
+            if (file && file.type && (file.type.startsWith('video/') || file.type.startsWith('image/'))) {
+                const newClip = {
+                    id: Date.now(),
+                    name: file.name,
+                    start: clips.length > 0 ? clips[clips.length - 1].end : 0,
+                    end: (clips.length > 0 ? clips[clips.length - 1].end : 0) + 10,
+                    file: URL.createObjectURL(file),
+                };
+                const newClips = [...clips, newClip];
+                setClips(newClips);
+                saveToHistory(newClips, musicTracks);
+                if (!hasVideo) setHasVideo(true);
+            }
+        };
 
-        // const input = document.createElement('input');
-        // input.type = 'file';
-        // input.accept = 'video/*';
-        // input.onchange = (e) => {
-        //     const file = e.target.files[0];
-        //     if (file && file.type.startsWith('video/')) {
-        //         const newClip = {
-        //             id: Date.now(),
-        //             name: file.name,
-        //             start: clips.length > 0 ? clips[clips.length - 1].end : 0,
-        //             end: (clips.length > 0 ? clips[clips.length - 1].end : 0) + 10,
-        //             file: URL.createObjectURL(file),
-        //         };
-        //         const newClips = [...clips, newClip];
-        //         setClips(newClips);
-        //         saveToHistory(newClips, musicTracks);
-        //     }
-        // };
-        // input.click();
+        if (fileFromPanel) {
+            addMediaFile(fileFromPanel);
+            return;
+        }
+
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'video/*,image/*';
+        input.onchange = (e) => {
+            const file = e.target.files[0];
+            addMediaFile(file);
+        };
+        input.click();
     };
 
-    // in EditorPage.jsx (replace existing handleVideoUpload)
+    // in EditorPage.jsx — set local state FIRST, then upload to backend in background
     const handleVideoUpload = async (file) => {
         if (!file) return;
-        console.log("Uploading file to backend...", file);
+        console.log("Processing video...", file.name);
 
+        // 1. IMMEDIATELY set local state so timeline + preview work right away
+        const localBlobUrl = URL.createObjectURL(file);
+        setHasVideo(true);
+        setVideoSrc(localBlobUrl);
+
+        const initialClip = {
+            id: Date.now(),
+            name: file.name,
+            start: 0,
+            end: 0, // will be updated when video metadata loads
+            file: localBlobUrl,
+        };
+        setClips([initialClip]);
+        setSelectedClip(initialClip.id);
+        saveToHistory([initialClip], musicTracks);
+
+        // 2. Then try backend upload in background (for AI editing + export)
         try {
             const formData = new FormData();
             formData.append("file", file);
@@ -273,45 +377,32 @@ const EditorPage = () => {
                 },
             });
 
-            if (!res || !res.data) {
-                console.error("Upload: no response data", res);
-                alert("Upload failed: no response.");
-                return;
+            if (res && res.data) {
+                const data = res.data;
+                console.log("Backend upload success:", data);
+
+                setJobId(data.job_id);
+
+                // Update clip duration from server if available
+                if (data.duration) {
+                    setClips(prev => prev.map(c => c.id === initialClip.id ? { ...c, end: data.duration } : c));
+                }
+
+                setMessages(prev => [...prev, {
+                    id: Date.now(),
+                    role: 'assistant',
+                    content: '🎥 Visuals acquired! I am analyzing the footage. What is your creative vision?',
+                    timestamp: new Date()
+                }]);
             }
-
-            const data = res.data;
-            console.log("Upload response:", data);
-
-            // Save job id and set video preview to server download URL (original until edited)
-            setJobId(data.job_id);
-            setHasVideo(true);
-
-            // Using server download endpoint to preview original (works even before edit)
-            const serverVideoUrl = `${API_URL}/jobs/${data.job_id}/download`;
-            setVideoSrc(serverVideoUrl);
-
-            // add initial clip for UI (keeps timeline happy)
-            const initialClip = {
-                id: Date.now(),
-                name: file.name,
-                start: 0,
-                end: data.duration || 0,
-                file: URL.createObjectURL(file),
-            };
-            setClips([initialClip]);
-            setSelectedClip(initialClip.id);
-            saveToHistory([initialClip], musicTracks);
-
+        } catch (err) {
+            console.error("Backend upload failed (manual editing still works):", err);
             setMessages(prev => [...prev, {
                 id: Date.now(),
                 role: 'assistant',
-                content: '🎥 Visuals acquired! I am analyzing the footage. What is your creative vision?',
+                content: '⚠️ Backend connection failed — manual editing tools work fine! AI features need the backend running.',
                 timestamp: new Date()
             }]);
-
-        } catch (err) {
-            console.error("Upload error:", err);
-            alert("Upload failed — check console/backend logs.");
         }
     };
 
@@ -391,13 +482,47 @@ const EditorPage = () => {
     }, [duration]);
 
     const handleVideoTimeUpdate = (e) => {
-        if (isPlaying && e.target && !isDraggingPlayhead) {
-            setCurrentTime(e.target.currentTime);
+        if (!e.target || isDraggingPlayhead) return;
+
+        const videoTime = e.target.currentTime;
+
+        if (isPlaying && clips.length > 0) {
+            // Sort clips by start time
+            const sortedClips = [...clips].sort((a, b) => a.start - b.start);
+
+            // Check if current time is within any clip
+            const currentClip = sortedClips.find(c => videoTime >= c.start && videoTime <= c.end);
+
+            if (currentClip) {
+                // We're inside a valid clip — just update the time
+                setCurrentTime(videoTime);
+            } else {
+                // We're outside all clips — find next clip to jump to
+                const nextClip = sortedClips.find(c => c.start > videoTime);
+
+                if (nextClip) {
+                    // Jump to next clip's start
+                    if (videoSeekRef.current) videoSeekRef.current(nextClip.start);
+                    setCurrentTime(nextClip.start);
+                } else {
+                    // Past all clips — pause playback
+                    setIsPlaying(false);
+                    // Seek back to first clip start
+                    if (sortedClips.length > 0) {
+                        const firstStart = sortedClips[0].start;
+                        if (videoSeekRef.current) videoSeekRef.current(firstStart);
+                        setCurrentTime(firstStart);
+                    }
+                }
+            }
+        } else {
+            setCurrentTime(videoTime);
         }
     };
 
     const handleSeek = (time) => {
-        videoSeekRef.current(time);
+        if (videoSeekRef.current) videoSeekRef.current(time);
+        setCurrentTime(time);
     };
 
     const handleAdjustmentChange = (key, value) => {
@@ -417,8 +542,9 @@ const EditorPage = () => {
     const loadExistingProject = async (id) => {
         try {
             console.log("Loading project:", id);
+            const token = localStorage.getItem("token");
             const res = await axios.get(`${API_URL}/jobs/${id}`, {
-                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+                headers: token ? { Authorization: `Bearer ${token}` } : {}
             });
 
             const jobData = res.data;
@@ -428,11 +554,21 @@ const EditorPage = () => {
             setHasVideo(true);
             setProjectName(`Project ${id.substring(0, 6)}`);
 
+            // 2. Set Video Source — download as blob to avoid auth issues
+            try {
+                const videoRes = await axios.get(`${API_URL}/jobs/${id}/download`, {
+                    responseType: 'blob',
+                    headers: token ? { Authorization: `Bearer ${token}` } : {}
+                });
+                const blob = videoRes.data;
+                const videoUrl = URL.createObjectURL(blob);
+                setVideoSrc(videoUrl);
+            } catch (videoErr) {
+                console.warn("Could not load video preview, using direct URL", videoErr);
+                setVideoSrc(`${API_URL}/jobs/${id}/download?t=${Date.now()}`);
+            }
 
-            // 2. Set Video Source (The backend logic usually serves edited if available)
-            // We append a timestamp to avoid browser caching issues if you re-edit
-            setVideoSrc(`${API_URL}/jobs/${id}/download?t=${Date.now()}`);
-
+            // 3. Restore Chat History
             const recoveredMessages = [
                 {
                     id: 1,
@@ -442,109 +578,141 @@ const EditorPage = () => {
                 }
             ];
 
-            // 3. Restore Chat History (Last Prompt)
             if (jobData.prompt && jobData.prompt !== "Awaiting user prompt...") {
-                setMessages(prev => [
-                    ...prev, // Keep the "Hello I am AI" message
-                    {
-                        id: 'restored-user',
-                        role: 'user',
-                        content: jobData.prompt,
-                        timestamp: new Date() // or jobData.created_at if available
-                    },
-                    {
-                        id: 'restored-ai',
-                        role: 'assistant',
-                        content: `I've restored your project. Current status is: ${jobData.status}`,
-                        timestamp: new Date()
-                    }
-                ]);
+                recoveredMessages.push({
+                    id: 'restored-user',
+                    role: 'user',
+                    content: jobData.prompt,
+                    timestamp: new Date()
+                });
+                recoveredMessages.push({
+                    id: 'restored-ai',
+                    role: 'assistant',
+                    content: `I've restored your project. Current status is: ${jobData.status}`,
+                    timestamp: new Date()
+                });
             }
             setMessages(recoveredMessages);
 
             // 4. Update Duration/Metadata if available
             if (jobData.duration) {
                 setDuration(jobData.duration);
-                // Also update the clips timeline to match duration
-                const restoredClip = {
-                    id: Date.now(),
-                    name: "Main Video",
-                    start: 0,
-                    end: jobData.duration,
-                    file: `${API_URL}/jobs/${id}/download`
-                };
-                setClips([restoredClip]);
             }
+            // Create a restored clip for the timeline
+            const restoredClip = {
+                id: Date.now(),
+                name: "Main Video",
+                start: 0,
+                end: jobData.duration || 0,
+                file: `${API_URL}/jobs/${id}/download`
+            };
+            setClips([restoredClip]);
+            setSelectedClip(restoredClip.id);
 
         } catch (err) {
             console.error("Failed to load existing project:", err);
-            alert("Could not load project. It might have been deleted.");
+            alert("Could not load project. It might have been deleted or the server is unavailable.");
         }
     };
 
     // Handler functions for new features
     const handleAddText = (textData) => {
-        showComingSoon("Text Overlays");
-        // const newText = {
-        //     id: Date.now(),
-        //     ...textData,
-        //     position: { x: 50, y: 50 }, // centered in %
-        // };
-        // setTextOverlays(prev => [...prev, newText]);
+        const newText = {
+            id: Date.now(),
+            ...textData,
+            position: { x: 50, y: 50 }, // centered in %
+        };
+        setTextOverlays(prev => [...prev, newText]);
+    };
+
+    const handleRemoveText = (id) => {
+        setTextOverlays(prev => prev.filter(t => t.id !== id));
+    };
+
+    const handleUpdateTextPosition = (id, position) => {
+        setTextOverlays(prev => prev.map(t => t.id === id ? { ...t, position } : t));
     };
 
     const handleAddSticker = (stickerData) => {
-        showComingSoon("Stickers & Emojis");
+        const newSticker = {
+            id: Date.now(),
+            ...stickerData,
+            position: { x: 60, y: 40 }, // offset from center
+        };
+        setStickers(prev => [...prev, newSticker]);
+    };
 
+    const handleRemoveSticker = (id) => {
+        setStickers(prev => prev.filter(s => s.id !== id));
+    };
 
-        // const newSticker = {
-        //     id: Date.now(),
-        //     ...stickerData,
-        //     position: { x: 50, y: 50 }, // centered in %
-        // };
-        // setStickers(prev => [...prev, newSticker]);
+    const handleUpdateStickerPosition = (id, position) => {
+        setStickers(prev => prev.map(s => s.id === id ? { ...s, position } : s));
     };
 
     const handleApplyEffect = (effect) => {
+        if (!hasVideo) return;
 
-        showComingSoon(`Effect: ${effect.name}`);
-        // if (!hasVideo) return;
-
-        // // Add effect to the list
-        // const newEffect = {
-        //     id: Date.now(),
-        //     ...effect,
-        //     startTime: currentTime,
-        //     duration: 3, // 3 second effect by default
-        // };
-        // setAppliedEffects(prev => [...prev, newEffect]);
-
-        // console.log('Applied effect:', effect.name);
+        // Toggle: if same effect is already applied, remove it
+        const existing = appliedEffects.find(e => e.id === effect.id);
+        if (existing) {
+            setAppliedEffects(prev => prev.filter(e => e.id !== effect.id));
+        } else {
+            const newEffect = {
+                ...effect,
+                startTime: currentTime,
+                duration: duration, // apply to full video
+            };
+            setAppliedEffects(prev => [...prev, newEffect]);
+        }
     };
 
     const handleApplyTransition = (transition) => {
+        if (!hasVideo) return;
 
-        showComingSoon(`transition: ${transition.name}`);
-        // if (!hasVideo || !selectedClip) return;
-
-        // // Apply transition to selected clip
-        // setAppliedTransition({
-        //     id: Date.now(),
-        //     ...transition,
-        //     clipId: selectedClip,
-        // });
-
-        // console.log('Applied transition:', transition.name);
+        setAppliedTransition({
+            id: Date.now(),
+            ...transition,
+            clipId: selectedClip,
+        });
     };
 
     const handleApplyFilter = (filter) => {
-        showComingSoon(`Filter: ${filter.name}`);
+        if (filter.id === 'none') {
+            setAppliedFilter(null);
+            // Reset adjustments that the filter may have set
+            setAdjustments({
+                brightness: 0, contrast: 0, saturation: 0, hue: 0,
+                highlight: 0, shadows: 0, temperature: 0, tint: 0,
+                sharpness: 0, vignette: 0,
+            });
+            return;
+        }
+        setAppliedFilter(filter);
+        // Apply the filter's adjustment values
+        if (filter.adjustments) {
+            setAdjustments(prev => {
+                const updated = { ...prev };
+                Object.entries(filter.adjustments).forEach(([key, value]) => {
+                    if (key in updated) updated[key] = value;
+                });
+                return updated;
+            });
+        }
     };
 
     // call prompt endpoint
     const handleSendMessage = async (content) => {
-        if (!jobId) {
+        if (!hasVideo) {
             alert("Upload a video first.");
+            return;
+        }
+        if (!jobId) {
+            // Video is uploaded locally but backend hasn't finished processing yet
+            setMessages(prev => [...prev, 
+                { id: Date.now(), role: 'user', content, timestamp: new Date() },
+                { id: Date.now() + 1, role: 'assistant', content: '⏳ Still uploading to server (free tier takes ~1 min to wake up). Please try again in a moment!', timestamp: new Date() }
+            ]);
             return;
         }
         setIsProcessing(true);
@@ -562,7 +730,7 @@ const EditorPage = () => {
 
         } catch (err) {
             console.error("Prompt send error:", err);
-            setMessages(prev => [...prev, { id: Date.now(), role: 'assistant', content: 'Failed to reach the AI brain.', timestamp: new Date() }]);
+            setMessages(prev => [...prev, { id: Date.now(), role: 'assistant', content: 'Failed to reach the AI brain. The server might still be waking up — try again in a moment.', timestamp: new Date() }]);
             setIsProcessing(false);
         }
 
@@ -588,9 +756,23 @@ const EditorPage = () => {
 
     // polling
     const statusPollRef = useRef(null);
+    const pollStartTimeRef = useRef(null);
+    const POLL_TIMEOUT_MS = 5 * 60 * 1000; // 5 minute timeout
+
     const startPollingStatus = (id) => {
         if (statusPollRef.current) clearInterval(statusPollRef.current);
+        pollStartTimeRef.current = Date.now();
+
         statusPollRef.current = setInterval(async () => {
+            // Timeout check — stop polling after 5 minutes
+            if (Date.now() - pollStartTimeRef.current > POLL_TIMEOUT_MS) {
+                clearInterval(statusPollRef.current);
+                statusPollRef.current = null;
+                setIsProcessing(false);
+                setMessages(prev => [...prev, { id: Date.now(), role: 'assistant', content: '⏰ Processing timed out. The free server may be overloaded — please try again.', timestamp: new Date() }]);
+                return;
+            }
+
             try {
                 const res = await axios.get(`${API_URL}/jobs/${id}`);
                 const data = res.data;
@@ -622,7 +804,8 @@ const EditorPage = () => {
                     clearInterval(statusPollRef.current);
                     setIsProcessing(false);
                     statusPollRef.current = null;
-                    setMessages(prev => [...prev, { id: Date.now(), role: 'assistant', content: 'Editing failed. Check backend logs.', timestamp: new Date() }]);
+                    const errMsg = data.error || 'Editing failed. Check backend logs.';
+                    setMessages(prev => [...prev, { id: Date.now(), role: 'assistant', content: `❌ ${errMsg}`, timestamp: new Date() }]);
                 } else {
                     // update UI status if you want
                 }
@@ -704,6 +887,9 @@ const EditorPage = () => {
                     textOverlays={textOverlays}
                     stickers={stickers}
                     clips={clips}
+                    onRemoveText={handleRemoveText}
+                    onRemoveSticker={handleRemoveSticker}
+                    appliedEffects={appliedEffects}
                 />
 
                 <div style={styles.centerArea}>
@@ -726,6 +912,14 @@ const EditorPage = () => {
                         onProjectNameChange={handleProjectNameChange}
                         adjustments={adjustments}
                         isProcessing={isProcessing}
+                        textOverlays={textOverlays}
+                        stickers={stickers}
+                        appliedEffects={appliedEffects}
+                        appliedFilter={appliedFilter}
+                        onUpdateTextPosition={handleUpdateTextPosition}
+                        onUpdateStickerPosition={handleUpdateStickerPosition}
+                        onRemoveText={handleRemoveText}
+                        onRemoveSticker={handleRemoveSticker}
                     />
 
                     <Timeline
@@ -749,9 +943,9 @@ const EditorPage = () => {
                         onRedo={handleRedo}
                         canUndo={historyIndex > 0}
                         canRedo={historyIndex < history.length - 1}
-
-
-
+                        videoRef={videoRef}
+                        videoSrc={videoSrc}
+                        appliedTransition={appliedTransition}
                     />
                     <ExportModal
                         isOpen={isExportOpen}

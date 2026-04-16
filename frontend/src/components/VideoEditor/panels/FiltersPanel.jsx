@@ -100,12 +100,12 @@ export default function FiltersPanel({ onApplyFilter }) {
         <div style={styles.sectionTitle}>Cinematic Looks</div>
         <div style={styles.presetsContainer}>
           {[
-            { name: 'Blockbuster', desc: 'Teal & Orange', gradient: 'linear-gradient(135deg, #ff6b35 0%, #004e89 100%)' },
-            { name: 'Dream', desc: 'Soft pastels', gradient: 'linear-gradient(135deg, #ffc3a0 0%, #ffafbd 100%)' },
-            { name: 'Cyberpunk', desc: 'Neon vibes', gradient: 'linear-gradient(135deg, #ff0080 0%, #7928ca 50%, #00d4ff 100%)' },
-            { name: 'Film Noir', desc: 'High contrast B&W', gradient: 'linear-gradient(135deg, #000000 0%, #434343 100%)' },
+            { id: 'blockbuster', name: 'Blockbuster', desc: 'Teal & Orange', filter: 'sepia(30%) saturate(150%) hue-rotate(330deg)', gradient: 'linear-gradient(135deg, #ff6b35 0%, #004e89 100%)', adjustments: { temperature: 30, saturation: 50, hue: -30 } },
+            { id: 'dream', name: 'Dream', desc: 'Soft pastels', filter: 'brightness(110%) saturate(80%) contrast(90%)', gradient: 'linear-gradient(135deg, #ffc3a0 0%, #ffafbd 100%)', adjustments: { brightness: 10, saturation: -20, contrast: -10 } },
+            { id: 'cyberpunk', name: 'Cyberpunk', desc: 'Neon vibes', filter: 'saturate(200%) contrast(120%) brightness(110%)', gradient: 'linear-gradient(135deg, #ff0080 0%, #7928ca 50%, #00d4ff 100%)', adjustments: { saturation: 100, contrast: 20, brightness: 10 } },
+            { id: 'filmnoir', name: 'Film Noir', desc: 'High contrast B&W', filter: 'grayscale(100%) contrast(150%)', gradient: 'linear-gradient(135deg, #000000 0%, #434343 100%)', adjustments: { saturation: -100, contrast: 50 } },
           ].map((preset, idx) => (
-            <div key={idx} style={styles.presetItem}>
+            <div key={idx} style={styles.presetItem} onClick={() => handleFilterSelect(preset)}>
               <div style={{
                 ...styles.presetPreview,
                 background: preset.gradient,

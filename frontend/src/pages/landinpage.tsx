@@ -1,36 +1,59 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState } from "react";
 // import { motion } from 'motion/react';
 import { motion } from "framer-motion";
-import { ArrowRight, Instagram, Twitter, MessageCircle, Sparkles, Video, Zap, Check, Globe, Wand2, Clock, Target, Lightbulb, Rocket } from 'lucide-react';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import RealisticSmartphone from '../components/RealisticSmartphone';
-import { useNavigate } from 'react-router-dom';
+import {
+  ArrowRight,
+  Instagram,
+  Twitter,
+  MessageCircle,
+  Sparkles,
+  Video,
+  Zap,
+  Check,
+  Globe,
+  Wand2,
+  Clock,
+  Target,
+  Lightbulb,
+  Rocket,
+} from "lucide-react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import RealisticSmartphone from "../components/RealisticSmartphone";
+import { useNavigate } from "react-router-dom";
 
 gsap.registerPlugin(ScrollTrigger);
 
 const LandingPage = () => {
   const navigate = useNavigate();
-  const containerRef = useRef < HTMLDivElement > (null);
-  const phoneRef = useRef < HTMLDivElement > (null);
-  const phoneFrameRef = useRef < HTMLDivElement > (null);
-  const section1Ref = useRef < HTMLDivElement > (null);
-  const section2Ref = useRef < HTMLDivElement > (null);
-  const section3Ref = useRef < HTMLDivElement > (null);
-  const section4Ref = useRef < HTMLDivElement > (null);
-  const phoneContainerRef = useRef < HTMLDivElement > (null);
-  const insidePhoneRef = useRef < HTMLDivElement > (null);
-  const section9Ref = useRef < HTMLDivElement > (null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const phoneRef = useRef<HTMLDivElement>(null);
+  const phoneFrameRef = useRef<HTMLDivElement>(null);
+  const section1Ref = useRef<HTMLDivElement>(null);
+  const section2Ref = useRef<HTMLDivElement>(null);
+  const section3Ref = useRef<HTMLDivElement>(null);
+  const section4Ref = useRef<HTMLDivElement>(null);
+  const phoneContainerRef = useRef<HTMLDivElement>(null);
+  const insidePhoneRef = useRef<HTMLDivElement>(null);
+  const section9Ref = useRef<HTMLDivElement>(null);
   const [insidePhone, setInsidePhone] = useState(false);
 
   useEffect(() => {
-    if (!phoneRef.current || !containerRef.current || !section1Ref.current || !section2Ref.current || !section3Ref.current || !section4Ref.current) return;
+    if (
+      !phoneRef.current ||
+      !containerRef.current ||
+      !section1Ref.current ||
+      !section2Ref.current ||
+      !section3Ref.current ||
+      !section4Ref.current
+    )
+      return;
 
     // Calculate responsive positions based on window width
     const calculatePositions = () => {
       const vw = window.innerWidth;
       return {
-        rightPos: vw * 0.25,  // 25vw converted to pixels
+        rightPos: vw * 0.25, // 25vw converted to pixels
         leftPos: -(vw * 0.25), // -25vw converted to pixels
       };
     };
@@ -51,7 +74,7 @@ const LandingPage = () => {
       const floatAnim = gsap.to(phoneRef.current, {
         y: 8,
         duration: 3,
-        ease: 'sine.inOut',
+        ease: "sine.inOut",
         yoyo: true,
         repeat: -1,
       });
@@ -60,11 +83,11 @@ const LandingPage = () => {
       const tl1 = gsap.timeline({
         scrollTrigger: {
           trigger: section1Ref.current,
-          start: 'top top',
-          end: 'bottom top',
+          start: "top top",
+          end: "bottom top",
           scrub: true,
           invalidateOnRefresh: true,
-        }
+        },
       });
 
       tl1.to(phoneRef.current, {
@@ -72,7 +95,7 @@ const LandingPage = () => {
         rotateY: 2,
         rotateX: 1,
         scale: 0.98,
-        ease: 'power1.inOut',
+        ease: "power1.inOut",
         force3D: true,
       });
 
@@ -80,11 +103,11 @@ const LandingPage = () => {
       const tl2 = gsap.timeline({
         scrollTrigger: {
           trigger: section2Ref.current,
-          start: 'top top',
-          end: 'bottom top',
+          start: "top top",
+          end: "bottom top",
           scrub: true,
           invalidateOnRefresh: true,
-        }
+        },
       });
 
       tl2.to(phoneRef.current, {
@@ -92,7 +115,7 @@ const LandingPage = () => {
         rotateY: -2,
         rotateX: -1,
         scale: 1,
-        ease: 'power1.inOut',
+        ease: "power1.inOut",
         force3D: true,
       });
 
@@ -100,11 +123,11 @@ const LandingPage = () => {
       const tl3 = gsap.timeline({
         scrollTrigger: {
           trigger: section3Ref.current,
-          start: 'top top',
-          end: 'bottom top',
+          start: "top top",
+          end: "bottom top",
           scrub: true,
           invalidateOnRefresh: true,
-        }
+        },
       });
 
       tl3.to(phoneRef.current, {
@@ -112,7 +135,7 @@ const LandingPage = () => {
         rotateY: 0,
         rotateX: 0,
         scale: 1,
-        ease: 'power1.inOut',
+        ease: "power1.inOut",
         force3D: true,
       });
 
@@ -120,8 +143,8 @@ const LandingPage = () => {
       const tl4 = gsap.timeline({
         scrollTrigger: {
           trigger: section4Ref.current,
-          start: 'top top',
-          end: 'bottom bottom',
+          start: "top top",
+          end: "bottom bottom",
           scrub: true,
           onEnter: () => {
             floatAnim.pause();
@@ -129,60 +152,66 @@ const LandingPage = () => {
           onLeaveBack: () => {
             floatAnim.resume();
           },
-        }
+        },
       });
 
       // STAGE 1: Rotate to landscape (90 degrees) - 50% of animation
-      tl4.to(phoneRef.current, {
-        rotateZ: 90,
-        y: 0,
-        rotateX: 0,
-        rotateY: 0,
-        scale: 1,
-        duration: 0.5,
-        ease: 'power2.inOut',
-        force3D: true,
-      })
+      tl4
+        .to(phoneRef.current, {
+          rotateZ: 90,
+          y: 0,
+          rotateX: 0,
+          rotateY: 0,
+          scale: 1,
+          duration: 0.5,
+          ease: "power2.inOut",
+          force3D: true,
+        })
         // STAGE 2: Zoom in while in landscape - 50% of animation
         .to(phoneRef.current, {
           scale: 2.5,
           duration: 0.5,
-          ease: 'power2.in',
+          ease: "power2.in",
           force3D: true,
         });
 
       // Section 4 content fade in/out
-      gsap.timeline({
-        scrollTrigger: {
-          trigger: section4Ref.current,
-          start: 'top center',
-          end: 'top top',
-          scrub: true,
-        }
-      }).fromTo('#section4-content',
-        { opacity: 0, y: 30 },
-        { opacity: 1, y: 0, ease: 'power2.out' }
-      );
+      gsap
+        .timeline({
+          scrollTrigger: {
+            trigger: section4Ref.current,
+            start: "top center",
+            end: "top top",
+            scrub: true,
+          },
+        })
+        .fromTo(
+          "#section4-content",
+          { opacity: 0, y: 30 },
+          { opacity: 1, y: 0, ease: "power2.out" },
+        );
 
-      gsap.timeline({
-        scrollTrigger: {
-          trigger: section4Ref.current,
-          start: 'center center',
-          end: 'bottom-=20% bottom',
-          scrub: true,
-        }
-      }).to('#section4-content', {
-        opacity: 0,
-        y: -30,
-        ease: 'power2.in',
-      });
+      gsap
+        .timeline({
+          scrollTrigger: {
+            trigger: section4Ref.current,
+            start: "center center",
+            end: "bottom-=20% bottom",
+            scrub: true,
+          },
+        })
+        .to("#section4-content", {
+          opacity: 0,
+          y: -30,
+          ease: "power2.in",
+        });
 
       // Final zoom and fade out phone, show phone frame ONLY after zoom complete
       const tl5 = gsap.timeline({
         scrollTrigger: {
           trigger: section4Ref.current,
-          start: 'bottom-=10% bottom',
-          end: 'bottom bottom',
+          start: "bottom-=10% bottom",
+          end: "bottom bottom",
           scrub: true,
           onEnter: () => {
             setInsidePhone(true);
@@ -190,93 +219,101 @@ const LandingPage = () => {
           onLeaveBack: () => {
             setInsidePhone(false);
           },
-        }
+        },
       });
 
       tl5.to(phoneRef.current, {
         scale: 15,
         opacity: 0,
-        ease: 'power2.in',
+        ease: "power2.in",
         force3D: true,
       });
 
       // Content transitions - Logo (Section 1)
-      gsap.timeline({
-        scrollTrigger: {
-          trigger: section1Ref.current,
-          start: 'center top',
-          end: 'bottom top',
-          scrub: true,
-        }
-      }).to('#phone-content-logo', {
-        opacity: 0,
-        scale: 0.9,
-        ease: 'power2.inOut',
-      });
+      gsap
+        .timeline({
+          scrollTrigger: {
+            trigger: section1Ref.current,
+            start: "center top",
+            end: "bottom top",
+            scrub: true,
+          },
+        })
+        .to("#phone-content-logo", {
+          opacity: 0,
+          scale: 0.9,
+          ease: "power2.inOut",
+        });
 
       // Content transitions - Chat (Section 2)
       const chatInTl = gsap.timeline({
         scrollTrigger: {
           trigger: section1Ref.current,
-          start: 'center top',
-          end: 'bottom top',
+          start: "center top",
+          end: "bottom top",
           scrub: true,
-        }
+        },
       });
-      chatInTl.fromTo('#phone-content-chat',
+      chatInTl.fromTo(
+        "#phone-content-chat",
         { opacity: 0, scale: 0.9 },
-        { opacity: 1, scale: 1, ease: 'power2.out' }
+        { opacity: 1, scale: 1, ease: "power2.out" },
       );
 
       const chatOutTl = gsap.timeline({
         scrollTrigger: {
           trigger: section2Ref.current,
-          start: 'center top',
-          end: 'bottom top',
+          start: "center top",
+          end: "bottom top",
           scrub: true,
-        }
+        },
       });
-      chatOutTl.to('#phone-content-chat', {
+      chatOutTl.to("#phone-content-chat", {
         opacity: 0,
         scale: 0.9,
-        ease: 'power2.inOut',
+        ease: "power2.inOut",
       });
 
       // Content transitions - Robot (Section 3)
-      gsap.timeline({
-        scrollTrigger: {
-          trigger: section2Ref.current,
-          start: 'center top',
-          end: 'bottom top',
-          scrub: true,
-        }
-      }).fromTo('#phone-content-robot',
-        { opacity: 0, scale: 0.9 },
-        { opacity: 1, scale: 1, ease: 'back.out(1.5)' }
-      );
+      gsap
+        .timeline({
+          scrollTrigger: {
+            trigger: section2Ref.current,
+            start: "center top",
+            end: "bottom top",
+            scrub: true,
+          },
+        })
+        .fromTo(
+          "#phone-content-robot",
+          { opacity: 0, scale: 0.9 },
+          { opacity: 1, scale: 1, ease: "back.out(1.5)" },
+        );
 
       // Fade out robot content before rotation
-      gsap.timeline({
-        scrollTrigger: {
-          trigger: section3Ref.current,
-          start: 'center top',
-          end: 'bottom top',
-          scrub: true,
-        }
-      }).to('#phone-content-robot', {
-        opacity: 0,
-        scale: 0.9,
-        ease: 'power2.inOut',
-      });
+      gsap
+        .timeline({
+          scrollTrigger: {
+            trigger: section3Ref.current,
+            start: "center top",
+            end: "bottom top",
+            scrub: true,
+          },
+        })
+        .to("#phone-content-robot", {
+          opacity: 0,
+          scale: 0.9,
+          ease: "power2.inOut",
+        });
     });
 
     // Handle window resize - recalculate positions and update
- 
+
     const handleResize = () => {
       positions = calculatePositions();
 
       // Update all ScrollTriggers with new positions
-      ScrollTrigger.getAll().forEach(st => st.kill());
+      ScrollTrigger.getAll().forEach((st) => st.kill());
       ctx.revert();
 
       // Reinitialize with new positions
@@ -293,7 +330,7 @@ const LandingPage = () => {
         const floatAnim = gsap.to(phoneRef.current, {
           y: 8,
           duration: 3,
-          ease: 'sine.inOut',
+          ease: "sine.inOut",
           yoyo: true,
           repeat: -1,
         });
@@ -301,62 +338,62 @@ const LandingPage = () => {
         const tl1 = gsap.timeline({
           scrollTrigger: {
             trigger: section1Ref.current,
-            start: 'top top',
-            end: 'bottom top',
+            start: "top top",
+            end: "bottom top",
             scrub: true,
             invalidateOnRefresh: true,
-          }
+          },
         });
         tl1.to(phoneRef.current, {
           x: positions.leftPos,
           rotateY: 2,
           rotateX: 1,
           scale: 0.98,
-          ease: 'power1.inOut',
+          ease: "power1.inOut",
           force3D: true,
         });
 
         const tl2 = gsap.timeline({
           scrollTrigger: {
             trigger: section2Ref.current,
-            start: 'top top',
-            end: 'bottom top',
+            start: "top top",
+            end: "bottom top",
             scrub: true,
             invalidateOnRefresh: true,
-          }
+          },
         });
         tl2.to(phoneRef.current, {
           x: positions.rightPos,
           rotateY: -2,
           rotateX: -1,
           scale: 1,
-          ease: 'power1.inOut',
+          ease: "power1.inOut",
           force3D: true,
         });
 
         const tl3 = gsap.timeline({
           scrollTrigger: {
             trigger: section3Ref.current,
-            start: 'top top',
-            end: 'bottom top',
+            start: "top top",
+            end: "bottom top",
             scrub: true,
             invalidateOnRefresh: true,
-          }
+          },
         });
         tl3.to(phoneRef.current, {
           x: 0,
           rotateY: 0,
           rotateX: 0,
           scale: 1,
-          ease: 'power1.inOut',
+          ease: "power1.inOut",
           force3D: true,
         });
 
         const tl4 = gsap.timeline({
           scrollTrigger: {
             trigger: section4Ref.current,
-            start: 'top top',
-            end: 'bottom bottom',
+            start: "top top",
+            end: "bottom bottom",
             scrub: true,
             onEnter: () => {
               floatAnim.pause();
@@ -364,59 +401,65 @@ const LandingPage = () => {
             onLeaveBack: () => {
               floatAnim.resume();
             },
-          }
+          },
         });
 
         // STAGE 1: Rotate to landscape (90 degrees) - 50% of animation
-        tl4.to(phoneRef.current, {
-          rotateZ: 90,
-          y: 0,
-          rotateX: 0,
-          rotateY: 0,
-          scale: 1,
-          duration: 0.5,
-          ease: 'power2.inOut',
-          force3D: true,
-        })
+        tl4
+          .to(phoneRef.current, {
+            rotateZ: 90,
+            y: 0,
+            rotateX: 0,
+            rotateY: 0,
+            scale: 1,
+            duration: 0.5,
+            ease: "power2.inOut",
+            force3D: true,
+          })
           // STAGE 2: Zoom in while in landscape - 50% of animation
           .to(phoneRef.current, {
             scale: 2.5,
             duration: 0.5,
-            ease: 'power2.in',
+            ease: "power2.in",
             force3D: true,
           });
 
         // Section 4 content fade in/out
-        gsap.timeline({
-          scrollTrigger: {
-            trigger: section4Ref.current,
-            start: 'top center',
-            end: 'top top',
-            scrub: true,
-          }
-        }).fromTo('#section4-content',
-          { opacity: 0, y: 30 },
-          { opacity: 1, y: 0, ease: 'power2.out' }
-        );
+        gsap
+          .timeline({
+            scrollTrigger: {
+              trigger: section4Ref.current,
+              start: "top center",
+              end: "top top",
+              scrub: true,
+            },
+          })
+          .fromTo(
+            "#section4-content",
+            { opacity: 0, y: 30 },
+            { opacity: 1, y: 0, ease: "power2.out" },
+          );
 
-        gsap.timeline({
-          scrollTrigger: {
-            trigger: section4Ref.current,
-            start: 'center center',
-            end: 'bottom-=20% bottom',
-            scrub: true,
-          }
-        }).to('#section4-content', {
-          opacity: 0,
-          y: -30,
-          ease: 'power2.in',
-        });
+        gsap
+          .timeline({
+            scrollTrigger: {
+              trigger: section4Ref.current,
+              start: "center center",
+              end: "bottom-=20% bottom",
+              scrub: true,
+            },
+          })
+          .to("#section4-content", {
+            opacity: 0,
+            y: -30,
+            ease: "power2.in",
+          });
 
         const tl5 = gsap.timeline({
           scrollTrigger: {
             trigger: section4Ref.current,
-            start: 'bottom-=10% bottom',
-            end: 'bottom bottom',
+            start: "bottom-=10% bottom",
+            end: "bottom bottom",
             scrub: true,
             onLeaveBack: () => {
               setInsidePhone(false);
@@ -429,80 +472,88 @@ const LandingPage = () => {
                 setInsidePhone(false);
               }
             },
-          }
+          },
         });
         tl5.to(phoneRef.current, {
           scale: 15,
           opacity: 0,
-          ease: 'power2.in',
+          ease: "power2.in",
           force3D: true,
         });
 
         // Recreate content transitions
-        gsap.timeline({
-          scrollTrigger: {
-            trigger: section1Ref.current,
-            start: 'center top',
-            end: 'bottom top',
-            scrub: true,
-          }
-        }).to('#phone-content-logo', {
-          opacity: 0,
-          scale: 0.9,
-          ease: 'power2.inOut',
-        });
+        gsap
+          .timeline({
+            scrollTrigger: {
+              trigger: section1Ref.current,
+              start: "center top",
+              end: "bottom top",
+              scrub: true,
+            },
+          })
+          .to("#phone-content-logo", {
+            opacity: 0,
+            scale: 0.9,
+            ease: "power2.inOut",
+          });
 
         const chatInTl = gsap.timeline({
           scrollTrigger: {
             trigger: section1Ref.current,
-            start: 'center top',
-            end: 'bottom top',
+            start: "center top",
+            end: "bottom top",
             scrub: true,
-          }
+          },
         });
-        chatInTl.fromTo('#phone-content-chat',
+        chatInTl.fromTo(
+          "#phone-content-chat",
           { opacity: 0, scale: 0.9 },
-          { opacity: 1, scale: 1, ease: 'power2.out' }
+          { opacity: 1, scale: 1, ease: "power2.out" },
         );
 
         const chatOutTl = gsap.timeline({
           scrollTrigger: {
             trigger: section2Ref.current,
-            start: 'center top',
-            end: 'bottom top',
+            start: "center top",
+            end: "bottom top",
             scrub: true,
-          }
+          },
         });
-        chatOutTl.to('#phone-content-chat', {
+        chatOutTl.to("#phone-content-chat", {
           opacity: 0,
           scale: 0.9,
-          ease: 'power2.inOut',
+          ease: "power2.inOut",
         });
 
-        gsap.timeline({
-          scrollTrigger: {
-            trigger: section2Ref.current,
-            start: 'center top',
-            end: 'bottom top',
-            scrub: true,
-          }
-        }).fromTo('#phone-content-robot',
-          { opacity: 0, scale: 0.9 },
-          { opacity: 1, scale: 1, ease: 'back.out(1.5)' }
-        );
+        gsap
+          .timeline({
+            scrollTrigger: {
+              trigger: section2Ref.current,
+              start: "center top",
+              end: "bottom top",
+              scrub: true,
+            },
+          })
+          .fromTo(
+            "#phone-content-robot",
+            { opacity: 0, scale: 0.9 },
+            { opacity: 1, scale: 1, ease: "back.out(1.5)" },
+          );
 
-        gsap.timeline({
-          scrollTrigger: {
-            trigger: section3Ref.current,
-            start: 'center top',
-            end: 'bottom top',
-            scrub: true,
-          }
-        }).to('#phone-content-robot', {
-          opacity: 0,
-          scale: 0.9,
-          ease: 'power2.inOut',
-        });
+        gsap
+          .timeline({
+            scrollTrigger: {
+              trigger: section3Ref.current,
+              start: "center top",
+              end: "bottom top",
+              scrub: true,
+            },
+          })
+          .to("#phone-content-robot", {
+            opacity: 0,
+            scale: 0.9,
+            ease: "power2.inOut",
+          });
       });
     };
 
@@ -512,10 +563,10 @@ const LandingPage = () => {
       resizeTimeout = setTimeout(handleResize, 150);
     };
 
-    window.addEventListener('resize', debouncedResize);
+    window.addEventListener("resize", debouncedResize);
 
     return () => {
-      window.removeEventListener('resize', debouncedResize);
+      window.removeEventListener("resize", debouncedResize);
       ctx.revert();
     };
   }, []);
@@ -544,7 +595,10 @@ const LandingPage = () => {
                     </div>
                   </div>
                   {/* Brushed metal texture overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/[0.02] to-transparent pointer-events-none" style={{ backgroundSize: '100% 2px' }}></div>
+                  <div
+                    className="absolute inset-0 bg-gradient-to-b from-transparent via-white/[0.02] to-transparent pointer-events-none"
+                    style={{ backgroundSize: "100% 2px" }}
+                  ></div>
                   {/* Primary metallic sheen */}
                   <div className="absolute inset-0 bg-gradient-to-br from-white/12 via-white/[0.02] to-transparent pointer-events-none"></div>
                   {/* Secondary highlight for depth */}
@@ -587,7 +641,10 @@ const LandingPage = () => {
                     </div>
                   </div>
                   {/* Brushed metal texture overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/[0.02] to-transparent pointer-events-none" style={{ backgroundSize: '100% 2px' }}></div>
+                  <div
+                    className="absolute inset-0 bg-gradient-to-b from-transparent via-white/[0.02] to-transparent pointer-events-none"
+                    style={{ backgroundSize: "100% 2px" }}
+                  ></div>
                   {/* Primary metallic sheen */}
                   <div className="absolute inset-0 bg-gradient-to-bl from-white/12 via-white/[0.02] to-transparent pointer-events-none"></div>
                   {/* Secondary highlight for depth */}
@@ -661,7 +718,10 @@ const LandingPage = () => {
                     </div>
                   </div>
                   {/* Brushed metal texture overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.02] to-transparent pointer-events-none" style={{ backgroundSize: '2px 100%' }}></div>
+                  <div
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.02] to-transparent pointer-events-none"
+                    style={{ backgroundSize: "2px 100%" }}
+                  ></div>
                   {/* Primary metallic sheen */}
                   <div className="absolute inset-0 bg-gradient-to-br from-white/12 via-white/[0.02] to-transparent pointer-events-none"></div>
                   {/* Secondary highlight for depth */}
@@ -697,7 +757,10 @@ const LandingPage = () => {
                     </div>
                   </div>
                   {/* Brushed metal texture overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.02] to-transparent pointer-events-none" style={{ backgroundSize: '2px 100%' }}></div>
+                  <div
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.02] to-transparent pointer-events-none"
+                    style={{ backgroundSize: "2px 100%" }}
+                  ></div>
                   {/* Primary metallic sheen */}
                   <div className="absolute inset-0 bg-gradient-to-tr from-white/12 via-white/[0.02] to-transparent pointer-events-none"></div>
                   {/* Secondary highlight for depth */}
@@ -722,17 +785,20 @@ const LandingPage = () => {
         <div
           className="fixed z-[5] pointer-events-none"
           style={{
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            willChange: 'transform',
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            willChange: "transform",
           }}
         >
           <RealisticSmartphone ref={phoneRef} />
         </div>
 
         {/* SECTION 1: The Hook (Hero) */}
-        <section ref={section1Ref} className="min-h-screen flex items-center justify-center px-8 py-20 relative overflow-hidden">
+        <section
+          ref={section1Ref}
+          className="min-h-screen flex items-center justify-center px-8 py-20 relative overflow-hidden"
+        >
           <div className="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-2 gap-16 items-center relative z-10">
             <motion.div
               initial={{ opacity: 0, x: -50 }}
@@ -750,12 +816,12 @@ const LandingPage = () => {
                 <motion.h1
                   className="text-7xl lg:text-8xl bg-gradient-to-r from-[#8b5cf6] via-[#38bdf8] to-[#8b5cf6] bg-clip-text text-transparent mb-4 bg-[length:200%]"
                   animate={{
-                    backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+                    backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
                   }}
                   transition={{
                     duration: 8,
                     repeat: Infinity,
-                    ease: "linear"
+                    ease: "linear",
                   }}
                 >
                   Create Stunning Videos
@@ -772,7 +838,8 @@ const LandingPage = () => {
                 transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
                 viewport={{ once: false, amount: 0.2 }}
               >
-                The AI-powered editor that understands context. Describe your scene, and we build the universe around it.
+                The AI-powered editor that understands context. Describe your
+                scene, and we build the universe around it.
               </motion.p>
 
               <motion.div
@@ -782,7 +849,7 @@ const LandingPage = () => {
                 viewport={{ once: false, amount: 0.2 }}
               >
                 <motion.button
-                onClick={() => navigate('/login')}
+                  onClick={() => navigate("/login")}
                   className="group mt-4 px-10 py-5 bg-gradient-to-r from-[#8b5cf6] to-[#38bdf8] rounded-full text-[#f8fafc] flex items-center gap-3 hover:shadow-2xl hover:shadow-[#8b5cf6]/50 transition-all duration-300 text-lg"
                   whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
@@ -848,7 +915,7 @@ const LandingPage = () => {
                   duration: 3 + Math.random() * 2,
                   delay: Math.random() * 5,
                   repeat: Infinity,
-                  ease: "easeOut"
+                  ease: "easeOut",
                 }}
               />
             ))}
@@ -856,7 +923,10 @@ const LandingPage = () => {
         </section>
 
         {/* SECTION 2: Demo - AI Chat Interface */}
-        <section ref={section2Ref} className="min-h-screen flex items-center justify-center px-8 py-20 relative overflow-hidden">
+        <section
+          ref={section2Ref}
+          className="min-h-screen flex items-center justify-center px-8 py-20 relative overflow-hidden"
+        >
           <div className="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-2 gap-16 items-center relative z-10">
             <div className="hidden lg:block"></div>
 
@@ -874,7 +944,11 @@ const LandingPage = () => {
                 transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
                 viewport={{ once: false, amount: 0.2 }}
               >
-                Edit via <span className="bg-gradient-to-r from-[#8b5cf6] to-[#38bdf8] bg-clip-text text-transparent">Conversation</span>.
+                Edit via{" "}
+                <span className="bg-gradient-to-r from-[#8b5cf6] to-[#38bdf8] bg-clip-text text-transparent">
+                  Conversation
+                </span>
+                .
               </motion.h2>
 
               <motion.p
@@ -884,7 +958,8 @@ const LandingPage = () => {
                 transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
                 viewport={{ once: false, amount: 0.2 }}
               >
-                No complex software. Just text Editverse what you need, and the AI renders it instantly.
+                No complex software. Just text Editverse what you need, and the
+                AI renders it instantly.
               </motion.p>
 
               <motion.div
@@ -895,9 +970,24 @@ const LandingPage = () => {
                 viewport={{ once: false, amount: 0.2 }}
               >
                 {[
-                  { num: 1, title: "Describe Your Vision", desc: "Tell the AI what you want to change or create", color: "from-[#8b5cf6] to-[#a78bfa]" },
-                  { num: 2, title: "AI Understands Context", desc: "Our engine analyzes your entire scene", color: "from-[#38bdf8] to-[#0ea5e9]" },
-                  { num: 3, title: "Instant Results", desc: "Watch your edits come to life in real-time", color: "from-[#8b5cf6] to-[#38bdf8]" }
+                  {
+                    num: 1,
+                    title: "Describe Your Vision",
+                    desc: "Tell the AI what you want to change or create",
+                    color: "from-[#8b5cf6] to-[#a78bfa]",
+                  },
+                  {
+                    num: 2,
+                    title: "AI Understands Context",
+                    desc: "Our engine analyzes your entire scene",
+                    color: "from-[#38bdf8] to-[#0ea5e9]",
+                  },
+                  {
+                    num: 3,
+                    title: "Instant Results",
+                    desc: "Watch your edits come to life in real-time",
+                    color: "from-[#8b5cf6] to-[#38bdf8]",
+                  },
                 ].map((step) => (
                   <motion.div
                     key={step.num}
@@ -908,11 +998,15 @@ const LandingPage = () => {
                     viewport={{ once: false, amount: 0.2 }}
                     whileHover={{ scale: 1.02, x: 5 }}
                   >
-                    <div className={`min-w-[60px] h-[60px] rounded-2xl bg-gradient-to-br ${step.color} flex items-center justify-center shadow-lg`}>
+                    <div
+                      className={`min-w-[60px] h-[60px] rounded-2xl bg-gradient-to-br ${step.color} flex items-center justify-center shadow-lg`}
+                    >
                       <span className="text-2xl text-white">{step.num}</span>
                     </div>
                     <div>
-                      <h3 className="text-xl text-[#f8fafc] mb-2">{step.title}</h3>
+                      <h3 className="text-xl text-[#f8fafc] mb-2">
+                        {step.title}
+                      </h3>
                       <p className="text-[#f8fafc]/60">{step.desc}</p>
                     </div>
                   </motion.div>
@@ -924,7 +1018,7 @@ const LandingPage = () => {
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <motion.div
               className="absolute w-96 h-96 bg-[#8b5cf6]/20 rounded-full blur-3xl"
-              style={{ top: '20%', right: '10%' }}
+              style={{ top: "20%", right: "10%" }}
               animate={{
                 scale: [1, 1.2, 1],
                 opacity: [0.3, 0.5, 0.3],
@@ -932,14 +1026,17 @@ const LandingPage = () => {
               transition={{
                 duration: 8,
                 repeat: Infinity,
-                ease: "easeInOut"
+                ease: "easeInOut",
               }}
             />
           </div>
         </section>
 
         {/* SECTION 3: Success - Happy Robot */}
-        <section ref={section3Ref} className="min-h-screen flex items-center justify-center px-8 py-20 relative overflow-hidden">
+        <section
+          ref={section3Ref}
+          className="min-h-screen flex items-center justify-center px-8 py-20 relative overflow-hidden"
+        >
           <div className="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-2 gap-16 items-center relative z-10">
             <motion.div
               initial={{ opacity: 0, x: -50 }}
@@ -955,7 +1052,11 @@ const LandingPage = () => {
                 transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
                 viewport={{ once: false, amount: 0.2 }}
               >
-                Videos That <span className="bg-gradient-to-r from-[#8b5cf6] to-[#38bdf8] bg-clip-text text-transparent">Convert</span>.
+                Videos That{" "}
+                <span className="bg-gradient-to-r from-[#8b5cf6] to-[#38bdf8] bg-clip-text text-transparent">
+                  Convert
+                </span>
+                .
               </motion.h2>
 
               <motion.p
@@ -965,7 +1066,8 @@ const LandingPage = () => {
                 transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
                 viewport={{ once: false, amount: 0.2 }}
               >
-                Join 50,000+ creators who've transformed their content strategy with Editverse AI.
+                Join 50,000+ creators who've transformed their content strategy
+                with Editverse AI.
               </motion.p>
 
               <motion.div
@@ -976,10 +1078,30 @@ const LandingPage = () => {
                 viewport={{ once: false, amount: 0.2 }}
               >
                 {[
-                  { value: "10M+", label: "Videos Created", icon: Video, color: "from-[#8b5cf6] to-[#a78bfa]" },
-                  { value: "95%", label: "Time Saved", icon: Clock, color: "from-[#38bdf8] to-[#0ea5e9]" },
-                  { value: "4.9/5", label: "User Rating", icon: Sparkles, color: "from-[#8b5cf6] to-[#38bdf8]" },
-                  { value: "190+", label: "Countries", icon: Globe, color: "from-[#38bdf8] to-[#8b5cf6]" }
+                  {
+                    value: "10M+",
+                    label: "Videos Created",
+                    icon: Video,
+                    color: "from-[#8b5cf6] to-[#a78bfa]",
+                  },
+                  {
+                    value: "95%",
+                    label: "Time Saved",
+                    icon: Clock,
+                    color: "from-[#38bdf8] to-[#0ea5e9]",
+                  },
+                  {
+                    value: "4.9/5",
+                    label: "User Rating",
+                    icon: Sparkles,
+                    color: "from-[#8b5cf6] to-[#38bdf8]",
+                  },
+                  {
+                    value: "190+",
+                    label: "Countries",
+                    icon: Globe,
+                    color: "from-[#38bdf8] to-[#8b5cf6]",
+                  },
                 ].map((stat, i) => {
                   const Icon = stat.icon;
                   return (
@@ -992,10 +1114,14 @@ const LandingPage = () => {
                       viewport={{ once: false, amount: 0.2 }}
                       whileHover={{ scale: 1.05, y: -5 }}
                     >
-                      <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center mb-3`}>
+                      <div
+                        className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center mb-3`}
+                      >
                         <Icon className="w-6 h-6 text-white" />
                       </div>
-                      <p className="text-3xl text-[#f8fafc] mb-1">{stat.value}</p>
+                      <p className="text-3xl text-[#f8fafc] mb-1">
+                        {stat.value}
+                      </p>
                       <p className="text-sm text-[#f8fafc]/60">{stat.label}</p>
                     </motion.div>
                   );
@@ -1009,7 +1135,7 @@ const LandingPage = () => {
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <motion.div
               className="absolute w-96 h-96 bg-[#38bdf8]/20 rounded-full blur-3xl"
-              style={{ top: '30%', left: '10%' }}
+              style={{ top: "30%", left: "10%" }}
               animate={{
                 scale: [1, 1.3, 1],
                 opacity: [0.2, 0.4, 0.2],
@@ -1017,7 +1143,7 @@ const LandingPage = () => {
               transition={{
                 duration: 10,
                 repeat: Infinity,
-                ease: "easeInOut"
+                ease: "easeInOut",
               }}
             />
           </div>
@@ -1030,9 +1156,15 @@ const LandingPage = () => {
             ref={section4Ref}
             className="h-[150vh] flex items-center justify-center px-8 py-20 relative overflow-hidden"
           >
-            <div id="section4-content" className="max-w-4xl mx-auto text-center relative z-10">
+            <div
+              id="section4-content"
+              className="max-w-4xl mx-auto text-center relative z-10"
+            >
               <h2 className="text-4xl lg:text-6xl text-[#f8fafc] mb-6">
-                Step Inside The <span className="bg-gradient-to-r from-[#8b5cf6] to-[#38bdf8] bg-clip-text text-transparent">Future</span>
+                Step Inside The{" "}
+                <span className="bg-gradient-to-r from-[#8b5cf6] to-[#38bdf8] bg-clip-text text-transparent">
+                  Future
+                </span>
               </h2>
               <p className="text-xl text-[#f8fafc]/70 max-w-2xl mx-auto">
                 Discover how Editverse AI transforms your creative workflow
@@ -1056,7 +1188,7 @@ const LandingPage = () => {
                     duration: 2 + Math.random() * 2,
                     delay: Math.random() * 3,
                     repeat: Infinity,
-                    ease: "easeInOut"
+                    ease: "easeInOut",
                   }}
                 />
               ))}
@@ -1074,9 +1206,14 @@ const LandingPage = () => {
                 viewport={{ once: false, amount: 0.2 }}
               >
                 <h2 className="text-4xl lg:text-5xl text-[#f8fafc] mb-4">
-                  How It <span className="bg-gradient-to-r from-[#8b5cf6] to-[#38bdf8] bg-clip-text text-transparent">Works</span>
+                  How It{" "}
+                  <span className="bg-gradient-to-r from-[#8b5cf6] to-[#38bdf8] bg-clip-text text-transparent">
+                    Works
+                  </span>
                 </h2>
-                <p className="text-xl text-[#f8fafc]/70">Four simple steps to video perfection</p>
+                <p className="text-xl text-[#f8fafc]/70">
+                  Four simple steps to video perfection
+                </p>
               </motion.div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -1086,29 +1223,29 @@ const LandingPage = () => {
                     title: "Upload",
                     desc: "Drop your raw footage or start from scratch",
                     icon: Video,
-                    color: "from-[#8b5cf6] to-[#a78bfa]"
+                    color: "from-[#8b5cf6] to-[#a78bfa]",
                   },
                   {
                     step: "02",
                     title: "Chat",
                     desc: "Describe your vision in plain English",
                     icon: MessageCircle,
-                    color: "from-[#38bdf8] to-[#0ea5e9]"
+                    color: "from-[#38bdf8] to-[#0ea5e9]",
                   },
                   {
                     step: "03",
                     title: "AI Edits",
                     desc: "Watch as AI applies professional edits instantly",
                     icon: Wand2,
-                    color: "from-[#8b5cf6] to-[#38bdf8]"
+                    color: "from-[#8b5cf6] to-[#38bdf8]",
                   },
                   {
                     step: "04",
                     title: "Export",
                     desc: "Download in any format, ready to share",
                     icon: Zap,
-                    color: "from-[#38bdf8] to-[#8b5cf6]"
-                  }
+                    color: "from-[#38bdf8] to-[#8b5cf6]",
+                  },
                 ].map((item, i) => {
                   const Icon = item.icon;
                   return (
@@ -1121,11 +1258,17 @@ const LandingPage = () => {
                       viewport={{ once: false, amount: 0.2 }}
                       whileHover={{ scale: 1.05, y: -5 }}
                     >
-                      <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${item.color} flex items-center justify-center mb-4 shadow-lg`}>
+                      <div
+                        className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${item.color} flex items-center justify-center mb-4 shadow-lg`}
+                      >
                         <Icon className="w-8 h-8 text-white" />
                       </div>
-                      <div className="text-6xl text-[#8b5cf6]/20 mb-2">{item.step}</div>
-                      <h3 className="text-2xl text-[#f8fafc] mb-2">{item.title}</h3>
+                      <div className="text-6xl text-[#8b5cf6]/20 mb-2">
+                        {item.step}
+                      </div>
+                      <h3 className="text-2xl text-[#f8fafc] mb-2">
+                        {item.title}
+                      </h3>
                       <p className="text-[#f8fafc]/60">{item.desc}</p>
                     </motion.div>
                   );
@@ -1136,7 +1279,7 @@ const LandingPage = () => {
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
               <motion.div
                 className="absolute w-96 h-96 bg-[#8b5cf6]/10 rounded-full blur-3xl"
-                style={{ top: '20%', left: '20%' }}
+                style={{ top: "20%", left: "20%" }}
                 animate={{
                   scale: [1, 1.2, 1],
                   opacity: [0.2, 0.4, 0.2],
@@ -1144,7 +1287,7 @@ const LandingPage = () => {
                 transition={{
                   duration: 8,
                   repeat: Infinity,
-                  ease: "easeInOut"
+                  ease: "easeInOut",
                 }}
               />
             </div>
@@ -1161,9 +1304,14 @@ const LandingPage = () => {
                 viewport={{ once: false, amount: 0.2 }}
               >
                 <h2 className="text-4xl lg:text-5xl text-[#f8fafc] mb-4">
-                  Perfect For <span className="bg-gradient-to-r from-[#8b5cf6] to-[#38bdf8] bg-clip-text text-transparent">Everyone</span>
+                  Perfect For{" "}
+                  <span className="bg-gradient-to-r from-[#8b5cf6] to-[#38bdf8] bg-clip-text text-transparent">
+                    Everyone
+                  </span>
                 </h2>
-                <p className="text-xl text-[#f8fafc]/70">From solo creators to enterprise teams</p>
+                <p className="text-xl text-[#f8fafc]/70">
+                  From solo creators to enterprise teams
+                </p>
               </motion.div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -1173,43 +1321,51 @@ const LandingPage = () => {
                     desc: "Turn raw clips into viral content in minutes, not hours",
                     icon: Instagram,
                     gradient: "from-[#8b5cf6] to-[#a78bfa]",
-                    features: ["YouTube videos", "TikTok shorts", "Instagram Reels"]
+                    features: [
+                      "YouTube videos",
+                      "TikTok shorts",
+                      "Instagram Reels",
+                    ],
                   },
                   {
                     title: "Marketing Teams",
                     desc: "Scale video production without scaling your team",
                     icon: Sparkles,
                     gradient: "from-[#38bdf8] to-[#0ea5e9]",
-                    features: ["Product demos", "Ad campaigns", "Social media"]
+                    features: ["Product demos", "Ad campaigns", "Social media"],
                   },
                   {
                     title: "Educators",
                     desc: "Create engaging lessons with professional polish",
                     icon: Video,
                     gradient: "from-[#8b5cf6] to-[#38bdf8]",
-                    features: ["Online courses", "Tutorials", "Presentations"]
+                    features: ["Online courses", "Tutorials", "Presentations"],
                   },
                   {
                     title: "Agencies",
                     desc: "Deliver more client projects, faster than ever",
                     icon: Globe,
                     gradient: "from-[#38bdf8] to-[#8b5cf6]",
-                    features: ["Client videos", "Branded content", "Campaigns"]
+                    features: ["Client videos", "Branded content", "Campaigns"],
                   },
                   {
                     title: "Podcasters",
                     desc: "Transform audio into engaging video content",
                     icon: MessageCircle,
                     gradient: "from-[#8b5cf6] to-[#a78bfa]",
-                    features: ["Video podcasts", "Clips", "Highlights"]
+                    features: ["Video podcasts", "Clips", "Highlights"],
                   },
                   {
                     title: "Businesses",
                     desc: "Professional video content for your brand",
                     icon: Zap,
                     gradient: "from-[#38bdf8] to-[#0ea5e9]",
-                    features: ["Training videos", "Internal comms", "Marketing"]
-                  }
+                    features: [
+                      "Training videos",
+                      "Internal comms",
+                      "Marketing",
+                    ],
+                  },
                 ].map((useCase, i) => {
                   const Icon = useCase.icon;
                   return (
@@ -1222,14 +1378,21 @@ const LandingPage = () => {
                       viewport={{ once: false, amount: 0.2 }}
                       whileHover={{ scale: 1.05, y: -5 }}
                     >
-                      <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${useCase.gradient} flex items-center justify-center mb-4 shadow-lg group-hover:shadow-xl transition-shadow`}>
+                      <div
+                        className={`w-14 h-14 rounded-xl bg-gradient-to-br ${useCase.gradient} flex items-center justify-center mb-4 shadow-lg group-hover:shadow-xl transition-shadow`}
+                      >
                         <Icon className="w-7 h-7 text-white" />
                       </div>
-                      <h3 className="text-2xl text-[#f8fafc] mb-2">{useCase.title}</h3>
+                      <h3 className="text-2xl text-[#f8fafc] mb-2">
+                        {useCase.title}
+                      </h3>
                       <p className="text-[#f8fafc]/60 mb-4">{useCase.desc}</p>
                       <ul className="space-y-2">
                         {useCase.features.map((feature, idx) => (
-                          <li key={idx} className="flex items-center gap-2 text-[#f8fafc]/70 text-sm">
+                          <li
+                            key={idx}
+                            className="flex items-center gap-2 text-[#f8fafc]/70 text-sm"
+                          >
                             <Check className="w-4 h-4 text-[#8b5cf6]" />
                             {feature}
                           </li>
@@ -1244,7 +1407,7 @@ const LandingPage = () => {
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
               <motion.div
                 className="absolute w-96 h-96 bg-[#38bdf8]/10 rounded-full blur-3xl"
-                style={{ bottom: '20%', right: '20%' }}
+                style={{ bottom: "20%", right: "20%" }}
                 animate={{
                   scale: [1, 1.3, 1],
                   opacity: [0.2, 0.3, 0.2],
@@ -1252,7 +1415,7 @@ const LandingPage = () => {
                 transition={{
                   duration: 10,
                   repeat: Infinity,
-                  ease: "easeInOut"
+                  ease: "easeInOut",
                 }}
               />
             </div>
@@ -1269,9 +1432,14 @@ const LandingPage = () => {
                 viewport={{ once: false, amount: 0.2 }}
               >
                 <h2 className="text-4xl lg:text-5xl text-[#f8fafc] mb-4">
-                  Trusted By <span className="bg-gradient-to-r from-[#8b5cf6] to-[#38bdf8] bg-clip-text text-transparent">Creators Worldwide</span>
+                  Trusted By{" "}
+                  <span className="bg-gradient-to-r from-[#8b5cf6] to-[#38bdf8] bg-clip-text text-transparent">
+                    Creators Worldwide
+                  </span>
                 </h2>
-                <p className="text-xl text-[#f8fafc]/70">Join 50,000+ creators making better videos</p>
+                <p className="text-xl text-[#f8fafc]/70">
+                  Join 50,000+ creators making better videos
+                </p>
               </motion.div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
@@ -1279,45 +1447,51 @@ const LandingPage = () => {
                   {
                     name: "Sarah Chen",
                     role: "YouTuber - 2M subscribers",
-                    quote: "Editverse cut my editing time from 6 hours to 30 minutes. Game changer.",
+                    quote:
+                      "Editverse cut my editing time from 6 hours to 30 minutes. Game changer.",
                     avatar: "SC",
-                    rating: 5
+                    rating: 5,
                   },
                   {
                     name: "Marcus Thompson",
                     role: "Marketing Director",
-                    quote: "We've 10x'd our video output without hiring more editors. ROI is insane.",
+                    quote:
+                      "We've 10x'd our video output without hiring more editors. ROI is insane.",
                     avatar: "MT",
-                    rating: 5
+                    rating: 5,
                   },
                   {
                     name: "Elena Rodriguez",
                     role: "Course Creator",
-                    quote: "My students say my videos look more professional than ever. Thank you!",
+                    quote:
+                      "My students say my videos look more professional than ever. Thank you!",
                     avatar: "ER",
-                    rating: 5
+                    rating: 5,
                   },
                   {
                     name: "David Kim",
                     role: "TikTok Creator",
-                    quote: "I went from 50k to 500k followers using Editverse. The AI just gets it.",
+                    quote:
+                      "I went from 50k to 500k followers using Editverse. The AI just gets it.",
                     avatar: "DK",
-                    rating: 5
+                    rating: 5,
                   },
                   {
                     name: "Priya Sharma",
                     role: "Podcast Host",
-                    quote: "Turning my audio podcasts into video was never this easy. Brilliant tool!",
+                    quote:
+                      "Turning my audio podcasts into video was never this easy. Brilliant tool!",
                     avatar: "PS",
-                    rating: 5
+                    rating: 5,
                   },
                   {
                     name: "James Wilson",
                     role: "Agency Owner",
-                    quote: "Our clients think we hired 3 new editors. It's just Editverse AI.",
+                    quote:
+                      "Our clients think we hired 3 new editors. It's just Editverse AI.",
                     avatar: "JW",
-                    rating: 5
-                  }
+                    rating: 5,
+                  },
                 ].map((testimonial, i) => (
                   <motion.div
                     key={i}
@@ -1334,15 +1508,22 @@ const LandingPage = () => {
                       </div>
                       <div>
                         <h4 className="text-[#f8fafc]">{testimonial.name}</h4>
-                        <p className="text-sm text-[#f8fafc]/60">{testimonial.role}</p>
+                        <p className="text-sm text-[#f8fafc]/60">
+                          {testimonial.role}
+                        </p>
                       </div>
                     </div>
                     <div className="flex gap-1 mb-3">
                       {[...Array(testimonial.rating)].map((_, idx) => (
-                        <Sparkles key={idx} className="w-4 h-4 text-[#8b5cf6] fill-[#8b5cf6]" />
+                        <Sparkles
+                          key={idx}
+                          className="w-4 h-4 text-[#8b5cf6] fill-[#8b5cf6]"
+                        />
                       ))}
                     </div>
-                    <p className="text-[#f8fafc]/70 italic">"{testimonial.quote}"</p>
+                    <p className="text-[#f8fafc]/70 italic">
+                      "{testimonial.quote}"
+                    </p>
                   </motion.div>
                 ))}
               </div>
@@ -1358,7 +1539,7 @@ const LandingPage = () => {
                   { value: "10M+", label: "Videos Created" },
                   { value: "50K+", label: "Active Users" },
                   { value: "4.9/5", label: "Average Rating" },
-                  { value: "190+", label: "Countries" }
+                  { value: "190+", label: "Countries" },
                 ].map((stat, i) => (
                   <motion.div
                     key={i}
@@ -1368,7 +1549,9 @@ const LandingPage = () => {
                     transition={{ delay: i * 0.1, duration: 0.5 }}
                     viewport={{ once: false, amount: 0.2 }}
                   >
-                    <p className="text-4xl text-[#f8fafc] mb-1 bg-gradient-to-r from-[#8b5cf6] to-[#38bdf8] bg-clip-text text-transparent">{stat.value}</p>
+                    <p className="text-4xl text-[#f8fafc] mb-1 bg-gradient-to-r from-[#8b5cf6] to-[#38bdf8] bg-clip-text text-transparent">
+                      {stat.value}
+                    </p>
                     <p className="text-sm text-[#f8fafc]/60">{stat.label}</p>
                   </motion.div>
                 ))}
@@ -1398,10 +1581,14 @@ const LandingPage = () => {
                 </motion.div>
 
                 <h2 className="text-5xl lg:text-7xl text-[#f8fafc] mb-6">
-                  Our <span className="bg-gradient-to-r from-[#8b5cf6] to-[#38bdf8] bg-clip-text text-transparent">Vision</span>
+                  Our{" "}
+                  <span className="bg-gradient-to-r from-[#8b5cf6] to-[#38bdf8] bg-clip-text text-transparent">
+                    Vision
+                  </span>
                 </h2>
                 <p className="text-2xl text-[#f8fafc]/60 max-w-3xl mx-auto">
-                  Building a universe where human intent is the only command necessary
+                  Building a universe where human intent is the only command
+                  necessary
                 </p>
               </motion.div>
 
@@ -1420,15 +1607,19 @@ const LandingPage = () => {
                       <Target className="w-8 h-8 text-white" />
                     </div>
                     <div>
-                      <h3 className="text-3xl text-[#f8fafc] mb-4">Our Mission</h3>
+                      <h3 className="text-3xl text-[#f8fafc] mb-4">
+                        Our Mission
+                      </h3>
                       <p className="text-xl text-[#f8fafc]/80 leading-relaxed mb-4">
-                        Editverse Ai was founded on a simple belief: that the most powerful creative tools
-                        should also be the simplest. We saw video editing bogged down by complex software,
-                        endless menus, and hours of rendering.
+                        Editverse Ai was founded on a simple belief: that the
+                        most powerful creative tools should also be the
+                        simplest. We saw video editing bogged down by complex
+                        software, endless menus, and hours of rendering.
                       </p>
                       <p className="text-xl text-[#f8fafc]/80 leading-relaxed">
-                        Our mission is to eliminate the technical barrier between an idea and a final cut,
-                        empowering creators to focus on what truly matters—their vision.
+                        Our mission is to eliminate the technical barrier
+                        between an idea and a final cut, empowering creators to
+                        focus on what truly matters—their vision.
                       </p>
                     </div>
                   </div>
@@ -1443,7 +1634,10 @@ const LandingPage = () => {
                 viewport={{ once: false, amount: 0.2 }}
               >
                 <h3 className="text-3xl lg:text-4xl text-[#f8fafc] mb-10 text-center">
-                  Built on Three <span className="bg-gradient-to-r from-[#8b5cf6] to-[#38bdf8] bg-clip-text text-transparent">Core Principles</span>
+                  Built on Three{" "}
+                  <span className="bg-gradient-to-r from-[#8b5cf6] to-[#38bdf8] bg-clip-text text-transparent">
+                    Core Principles
+                  </span>
                 </h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -1451,24 +1645,27 @@ const LandingPage = () => {
                     {
                       icon: MessageCircle,
                       title: "Simplicity First",
-                      description: "Replace complexity with conversation. Natural language commands eliminate the learning curve.",
+                      description:
+                        "Replace complexity with conversation. Natural language commands eliminate the learning curve.",
                       gradient: "from-[#8b5cf6]/10 to-[#8b5cf6]/5",
-                      iconBg: "from-[#8b5cf6] to-[#7c3aed]"
+                      iconBg: "from-[#8b5cf6] to-[#7c3aed]",
                     },
                     {
                       icon: Lightbulb,
                       title: "Context-Aware AI",
-                      description: "AI that understands the scene, not just the frame. Intelligent editing that knows your intent.",
+                      description:
+                        "AI that understands the scene, not just the frame. Intelligent editing that knows your intent.",
                       gradient: "from-[#38bdf8]/10 to-[#38bdf8]/5",
-                      iconBg: "from-[#38bdf8] to-[#0ea5e9]"
+                      iconBg: "from-[#38bdf8] to-[#0ea5e9]",
                     },
                     {
                       icon: Sparkles,
                       title: "Boundless Creation",
-                      description: "Empowering creators to realize impossible visions, instantly. No limits, only possibilities.",
+                      description:
+                        "Empowering creators to realize impossible visions, instantly. No limits, only possibilities.",
                       gradient: "from-[#8b5cf6]/10 to-[#38bdf8]/10",
-                      iconBg: "from-[#8b5cf6] to-[#38bdf8]"
-                    }
+                      iconBg: "from-[#8b5cf6] to-[#38bdf8]",
+                    },
                   ].map((principle, i) => {
                     const Icon = principle.icon;
                     return (
@@ -1481,11 +1678,17 @@ const LandingPage = () => {
                         viewport={{ once: false, amount: 0.2 }}
                         whileHover={{ scale: 1.05, y: -10 }}
                       >
-                        <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${principle.iconBg} flex items-center justify-center mb-6 shadow-lg group-hover:shadow-xl group-hover:shadow-[#8b5cf6]/50 transition-all duration-300`}>
+                        <div
+                          className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${principle.iconBg} flex items-center justify-center mb-6 shadow-lg group-hover:shadow-xl group-hover:shadow-[#8b5cf6]/50 transition-all duration-300`}
+                        >
                           <Icon className="w-8 h-8 text-white" />
                         </div>
-                        <h4 className="text-2xl text-[#f8fafc] mb-3 group-hover:text-[#8b5cf6] transition-colors duration-300">{principle.title}</h4>
-                        <p className="text-lg text-[#f8fafc]/70 leading-relaxed">{principle.description}</p>
+                        <h4 className="text-2xl text-[#f8fafc] mb-3 group-hover:text-[#8b5cf6] transition-colors duration-300">
+                          {principle.title}
+                        </h4>
+                        <p className="text-lg text-[#f8fafc]/70 leading-relaxed">
+                          {principle.description}
+                        </p>
                       </motion.div>
                     );
                   })}
@@ -1514,7 +1717,7 @@ const LandingPage = () => {
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
               <motion.div
                 className="absolute w-96 h-96 bg-[#8b5cf6]/20 rounded-full blur-3xl"
-                style={{ top: '10%', right: '10%' }}
+                style={{ top: "10%", right: "10%" }}
                 animate={{
                   scale: [1, 1.2, 1],
                   opacity: [0.3, 0.5, 0.3],
@@ -1522,12 +1725,12 @@ const LandingPage = () => {
                 transition={{
                   duration: 8,
                   repeat: Infinity,
-                  ease: "easeInOut"
+                  ease: "easeInOut",
                 }}
               />
               <motion.div
                 className="absolute w-96 h-96 bg-[#38bdf8]/20 rounded-full blur-3xl"
-                style={{ bottom: '10%', left: '10%' }}
+                style={{ bottom: "10%", left: "10%" }}
                 animate={{
                   scale: [1, 1.3, 1],
                   opacity: [0.2, 0.4, 0.2],
@@ -1535,14 +1738,17 @@ const LandingPage = () => {
                 transition={{
                   duration: 10,
                   repeat: Infinity,
-                  ease: "easeInOut"
+                  ease: "easeInOut",
                 }}
               />
             </div>
           </section>
 
           {/* SECTION 9: Final CTA */}
-          <section ref={section9Ref} className="min-h-screen flex items-center justify-center px-8 py-20 relative overflow-hidden">
+          <section
+            ref={section9Ref}
+            className="min-h-screen flex items-center justify-center px-8 py-20 relative overflow-hidden"
+          >
             <div className="max-w-4xl mx-auto text-center relative z-10">
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
@@ -1558,14 +1764,16 @@ const LandingPage = () => {
                   transition={{ duration: 0.6 }}
                   viewport={{ once: false, amount: 0.2 }}
                 >
-                  Ready to Create{' '}
-                  <span className="bg-gradient-to-r from-[#8b5cf6] via-[#38bdf8] to-[#8b5cf6] bg-clip-text text-transparent bg-[length:200%] inline-block"
+                  Ready to Create{" "}
+                  <span
+                    className="bg-gradient-to-r from-[#8b5cf6] via-[#38bdf8] to-[#8b5cf6] bg-clip-text text-transparent bg-[length:200%] inline-block"
                     style={{
-                      animation: 'gradient 8s linear infinite'
+                      animation: "gradient 8s linear infinite",
                     }}
                   >
                     Magic
-                  </span>?
+                  </span>
+                  ?
                 </motion.h2>
 
                 <motion.p
@@ -1575,7 +1783,8 @@ const LandingPage = () => {
                   transition={{ duration: 0.6 }}
                   viewport={{ once: false, amount: 0.2 }}
                 >
-                  Join thousands of creators who've transformed their video workflow with AI
+                  Join thousands of creators who've transformed their video
+                  workflow with AI
                 </motion.p>
 
                 <motion.div
@@ -1586,7 +1795,7 @@ const LandingPage = () => {
                   viewport={{ once: false, amount: 0.2 }}
                 >
                   <motion.button
-                    onClick={() => navigate('/login')}
+                    onClick={() => navigate("/login")}
                     className="group px-12 py-5 bg-gradient-to-r from-[#8b5cf6] to-[#38bdf8] rounded-full text-[#f8fafc] text-xl flex items-center gap-3 hover:shadow-2xl hover:shadow-[#8b5cf6]/50 transition-all duration-300"
                     whileHover={{ scale: 1.05, y: -2 }}
                     whileTap={{ scale: 0.95 }}
@@ -1624,7 +1833,7 @@ const LandingPage = () => {
                     duration: 3 + Math.random() * 2,
                     delay: Math.random() * 5,
                     repeat: Infinity,
-                    ease: "easeOut"
+                    ease: "easeOut",
                   }}
                 />
               ))}
@@ -1651,9 +1860,12 @@ const LandingPage = () => {
               <div className="space-y-4">
                 <h4 className="text-[#f8fafc] text-lg">Product</h4>
                 <ul className="space-y-2">
-                  {['Features', 'Demo', 'API', 'Integrations'].map((link) => (
+                  {["Features", "Demo", "API", "Integrations"].map((link) => (
                     <li key={link}>
-                      <a href="#" className="text-[#f8fafc]/60 hover:text-[#8b5cf6] transition-colors">
+                      <a
+                        href="#"
+                        className="text-[#f8fafc]/60 hover:text-[#8b5cf6] transition-colors"
+                      >
                         {link}
                       </a>
                     </li>
@@ -1665,13 +1877,18 @@ const LandingPage = () => {
               <div className="space-y-4">
                 <h4 className="text-[#f8fafc] text-lg">Company</h4>
                 <ul className="space-y-2">
-                  {['About', 'Blog', 'Careers', 'Press', 'Contact'].map((link) => (
-                    <li key={link}>
-                      <a href="#" className="text-[#f8fafc]/60 hover:text-[#8b5cf6] transition-colors">
-                        {link}
-                      </a>
-                    </li>
-                  ))}
+                  {["About", "Blog", "Careers", "Press", "Contact"].map(
+                    (link) => (
+                      <li key={link}>
+                        <a
+                          href="#"
+                          className="text-[#f8fafc]/60 hover:text-[#8b5cf6] transition-colors"
+                        >
+                          {link}
+                        </a>
+                      </li>
+                    ),
+                  )}
                 </ul>
               </div>
 
@@ -1679,9 +1896,18 @@ const LandingPage = () => {
               <div className="space-y-4">
                 <h4 className="text-[#f8fafc] text-lg">Resources</h4>
                 <ul className="space-y-2">
-                  {['Documentation', 'Tutorials', 'Support', 'Community', 'Status'].map((link) => (
+                  {[
+                    "Documentation",
+                    "Tutorials",
+                    "Support",
+                    "Community",
+                    "Status",
+                  ].map((link) => (
                     <li key={link}>
-                      <a href="#" className="text-[#f8fafc]/60 hover:text-[#8b5cf6] transition-colors">
+                      <a
+                        href="#"
+                        className="text-[#f8fafc]/60 hover:text-[#8b5cf6] transition-colors"
+                      >
                         {link}
                       </a>
                     </li>
@@ -1697,22 +1923,34 @@ const LandingPage = () => {
                 <span>Creators</span>
                 <span>:-</span>
                 <div className="flex flex-wrap items-center justify-center gap-4">
-                  {['Shreyas Mirashi', 'Sonu Sen', 'Alakshya Salvi', 'Muthusam Thevar', 'Harsh Kadam'].map((name, index) => (
+                  {[
+                    "Sonu Sen",
+                    "Alakshya Salvi",
+                    "Kshitij Kotian",
+                    "Sumit Lodhi",
+                  ].map((name, index) => (
                     <motion.span
                       key={name}
                       className="font-medium inline-block"
                       animate={{
-                        color: ['#8b5cf6', '#8b5cf6', '#38bdf8', '#8b5cf6', '#8b5cf6'],
-                        scale: [1, 1, 1.15, 1, 1]
+                        color: [
+                          "#8b5cf6",
+                          "#8b5cf6",
+                          "#38bdf8",
+                          "#8b5cf6",
+                          "#8b5cf6",
+                        ],
+                        scale: [1, 1, 1.15, 1, 1],
                       }}
                       transition={{
                         duration: 5,
                         repeat: Infinity,
                         delay: index * 1,
-                        ease: "easeInOut"
+                        ease: "easeInOut",
                       }}
                     >
-                      {name}{index < 4 && ','}
+                      {name}
+                      {index < 3 && ","}
                     </motion.span>
                   ))}
                 </div>
@@ -1720,12 +1958,14 @@ const LandingPage = () => {
 
               {/* Copyright & Social Links */}
               <div className="flex flex-col md:flex-row items-center gap-4">
-                <p className="text-[#f8fafc]/60">© 2025 Editverse AI. All rights reserved.</p>
+                <p className="text-[#f8fafc]/60">
+                  © 2025 Editverse AI. All rights reserved.
+                </p>
                 <div className="flex items-center gap-4">
                   {[
-                    { Icon: Instagram, href: '#' },
-                    { Icon: Twitter, href: '#' },
-                    { Icon: MessageCircle, href: '#' }
+                    { Icon: Instagram, href: "#" },
+                    { Icon: Twitter, href: "#" },
+                    { Icon: MessageCircle, href: "#" },
                   ].map(({ Icon, href }, i) => (
                     <motion.a
                       key={i}
@@ -1745,8 +1985,6 @@ const LandingPage = () => {
       </div>
     </>
   );
-}
-
+};
 
 export default LandingPage;
-

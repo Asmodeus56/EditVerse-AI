@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Sparkles, Play } from 'lucide-react';
 
-export default function EffectsPanel({ onApplyEffect, clips = [] }) {
-  const [selectedEffect, setSelectedEffect] = useState(null);
+export default function EffectsPanel({ onApplyEffect, clips = [], appliedEffects = [] }) {
+  const isEffectApplied = (effectId) => appliedEffects.some(e => e.id === effectId);
 
   const effects = [
     { id: 'blur', name: 'Blur', description: 'Add blur effect', intensity: 5 },
@@ -36,7 +36,6 @@ export default function EffectsPanel({ onApplyEffect, clips = [] }) {
   ];
 
   const handleApplyEffect = (effect) => {
-    setSelectedEffect(effect.id);
     if (onApplyEffect) {
       onApplyEffect(effect);
     }
@@ -86,7 +85,7 @@ export default function EffectsPanel({ onApplyEffect, clips = [] }) {
               key={effect.id}
               style={{
                 ...styles.effectItem,
-                ...(selectedEffect === effect.id ? styles.effectItemActive : {})
+                ...(isEffectApplied(effect.id) ? styles.effectItemActive : {})
               }}
               onClick={() => handleApplyEffect(effect)}
             >

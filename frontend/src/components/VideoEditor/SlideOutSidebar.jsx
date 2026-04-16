@@ -22,7 +22,10 @@ export default function SlideOutSidebar({
   onAdjustmentChange,
   textOverlays,
   stickers,
-  clips
+  clips,
+  onRemoveText,
+  onRemoveSticker,
+  appliedEffects
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [activePanel, setActivePanel] = useState(null);
@@ -142,6 +145,9 @@ export default function SlideOutSidebar({
               textOverlays={textOverlays}
               stickers={stickers}
               clips={clips}
+              onRemoveText={onRemoveText}
+              onRemoveSticker={onRemoveSticker}
+              appliedEffects={appliedEffects}
             />
           )}
         </div>

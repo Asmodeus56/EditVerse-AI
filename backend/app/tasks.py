@@ -59,7 +59,15 @@ def dummy_video_processing(job_id: str, filename: str):
     
     except Exception as e:
         print(f"❌ [WORKER] FAILED: {str(e)}")
+        try:
+            job.status = "FAILED"
+            job.error_message = str(e)
+            db.commit()
+        except Exception:
+            pass
         return {"status": "FAILED", "error": str(e)}
+    finally:
+        db.close()
     
 # @celery_app.task
 def process_video_edit(job_id: str, prompt: str):
@@ -115,4 +123,14 @@ def process_video_edit(job_id: str, prompt: str):
 
     except Exception as e:
         print(f"❌ [WORKER] FAILED: {str(e)}")
+        try:
+            job = db.query(VideoJob).filter(VideoJob.id == job_id).first()
+            if job:
+                job.status = "FAILED"
+                job.error_message = str(e)
+                db.commit()
+        except Exception:
+            pass
         return {"status": "FAILED", "error": str(e)}
+    finally:
+        db.close()
